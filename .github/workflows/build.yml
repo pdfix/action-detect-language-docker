@@ -35,10 +35,20 @@ jobs:
         run: pyinstaller src/lang_detect.py
       - name: Zip the dist folder
         run: zip -r lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip dist/
-      - name: Upload ZIP to FTP
-        run: |
-          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs  
-
+      # - name: Upload ZIP to FTP
+        # run: |
+        #   curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs  
+      - uses: sokuhatiku/ftp-upload-artifact@v1
+        with:
+          name: Upload ZIP to FTP
+          path: lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip
+          host: dev.linux.build.pdfix.net
+          port: 21
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          secure: false
+          remote-path: /public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/
+  
   build-windows:
     runs-on: windows-latest
     needs: prepare
