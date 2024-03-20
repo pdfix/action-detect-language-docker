@@ -1,0 +1,99 @@
+name: Cross-Platform Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  prepare:
+      runs-on: ubuntu-latest
+      outputs:
+        short_sha: ${{ steps.short_sha.outputs.short_sha }}
+      steps:
+        - name: Set sha
+          id: short_sha
+          run: echo "short_sha=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT    
+          
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Build binary
+        run: pyinstaller src/lang_detect.py
+      - name: Zip the dist folder
+        run: zip -r lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip dist/
+      - name: Upload ZIP to FTP
+        run: |
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs  
+
+  build-windows:
+    runs-on: windows-latest
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build binary
+        run: pyinstaller src/lang_detect.py
+      - name: Zip the dist folder
+        run: Compress-Archive -Path dist/* -DestinationPath lang-detect-${{ needs.prepare.outputs.short_sha }}-windows-x86_64.zip 
+      - name: Upload ZIP to FTP
+        run: |
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-windows-x86_64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
+
+
+  build-macos-arm64:
+    runs-on: macos-14
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build ARM64 binary
+        run: pyinstaller --target-architecture=arm64 src/lang_detect.py
+      - name: Zip the dist folder
+        run: zip -r lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-arm64.zip dist/
+      - name: Upload ZIP to FTP
+        shell: bash
+        run: |
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-arm64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs 
+
+  build-macos-x86_64:
+    runs-on: macos-latest
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install pyinstaller
+      - name: Build x86_64 binary
+        run: pyinstaller --target-architecture=x86_64 src/lang_detect.py
+      - name: Zip the dist folder
+        run: zip -r lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-x86_64.zip dist/
+      - name: Upload ZIP to FTP
+        run: |
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-x86_64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs 

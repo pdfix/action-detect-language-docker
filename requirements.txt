@@ -1,0 +1,6 @@
+altgraph==0.17.4
+langdetect==1.0.9
+packaging==24.0
+pyinstaller==5.13.2
+pyinstaller-hooks-contrib==2024.3
+six==1.16.0
