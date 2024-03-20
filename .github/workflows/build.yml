@@ -37,7 +37,7 @@ jobs:
         run: zip -r lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip dist/
       - name: Upload ZIP to FTP
         run: |
-          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs  
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-linux-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs  
 
   build-windows:
     runs-on: windows-latest
@@ -56,7 +56,7 @@ jobs:
         run: Compress-Archive -Path dist/* -DestinationPath lang-detect-${{ needs.prepare.outputs.short_sha }}-windows-x86_64.zip 
       - name: Upload ZIP to FTP
         run: |
-          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-windows-x86_64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-windows-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
 
 
   build-macos-arm64:
@@ -77,7 +77,7 @@ jobs:
       - name: Upload ZIP to FTP
         shell: bash
         run: |
-          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-arm64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs 
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-arm64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs 
 
   build-macos-x86_64:
     runs-on: macos-latest
@@ -96,4 +96,4 @@ jobs:
         run: zip -r lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-x86_64.zip dist/
       - name: Upload ZIP to FTP
         run: |
-          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-x86_64.zip ftp://ftp_dev@dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs 
+          curl -T lang-detect-${{ needs.prepare.outputs.short_sha }}-mac-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user ${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }} --ftp-create-dirs 
