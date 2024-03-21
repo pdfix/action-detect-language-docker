@@ -73,11 +73,11 @@ jobs:
       - name: Build ARM64 binary
         run: pyinstaller --target-architecture=arm64 src/lang_detect.py
       - name: Zip the dist folder
-        run: zip -r lang-detect_${{ needs.prepare.outputs.short_sha }}_mac-arm64.zip dist/
+        run: zip -r lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-arm64.zip dist/
       - name: Upload ZIP to FTP
         shell: bash
         run: |
-          curl -T lang-detect_${{ needs.prepare.outputs.short_sha }}_mac-arm64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
+          curl -T lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-arm64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
 
   build-macos-x86_64:
     runs-on: macos-latest
@@ -93,7 +93,7 @@ jobs:
       - name: Build x86_64 binary
         run: pyinstaller --target-architecture=x86_64 src/lang_detect.py
       - name: Zip the dist folder
-        run: zip -r lang-detect_${{ needs.prepare.outputs.short_sha }}_mac-x86_64.zip dist/
+        run: zip -r lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-x86_64.zip dist/
       - name: Upload ZIP to FTP
         run: |
-          curl -T lang-detect_${{ needs.prepare.outputs.short_sha }}_mac-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
+          curl -T lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
