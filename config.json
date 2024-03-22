@@ -1,0 +1,20 @@
+{
+  "plug-in":     {
+    "type": "custom",
+    "name": "lang_detect",
+    "cmd": "lang_detect",
+    "path": "${PUGIN_FOLDER}",
+    "args": [
+      {
+        "name": "--input_pdf",
+        "type": "file_path",
+        "value": "${INPUT_FILE}"
+      },
+      {
+        "name": "--output",
+        "type": "file_path",
+        "value": "${OUTPUT_FILE}"
+      }
+    ]
+  }
+}
