@@ -32,9 +32,11 @@ jobs:
         run: |
           pip install -r requirements.txt
       - name: Build binary
-        run: pyinstaller src/lang_detect.py
+        run: pyinstaller lang_detect.spec
+      - name: Copy config files
+        run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
-        run: zip -r lang-detect_${{ needs.prepare.outputs.short_sha }}_linux-x86_64.zip dist/
+        run: cd dist/ && zip -r ../lang-detect_${{ needs.prepare.outputs.short_sha }}_linux-x86_64.zip dist/ && cd ../
       - name: Upload ZIP to FTP
         run: |
           curl -T lang-detect_${{ needs.prepare.outputs.short_sha }}_linux-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs
@@ -51,7 +53,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Build binary
-        run: pyinstaller src/lang_detect.py
+        run: pyinstaller lang_detect.spec
+      - name: Copy config files
+        run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
         run: Compress-Archive -Path dist/* -DestinationPath lang-detect_${{ needs.prepare.outputs.short_sha }}_windows-x86_64.zip 
       - name: Upload ZIP to FTP
@@ -71,9 +75,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Build ARM64 binary
-        run: pyinstaller --target-architecture=arm64 src/lang_detect.py
+        run: pyinstaller lang_detect.spec
+      - name: Copy config files
+        run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
-        run: zip -r lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-arm64.zip dist/
+        run: cd dist/ && zip -r ../lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-arm64.zip dist/ && cd ../
       - name: Upload ZIP to FTP
         shell: bash
         run: |
@@ -91,9 +97,11 @@ jobs:
       - name: Install dependencies
         run: pip install pyinstaller
       - name: Build x86_64 binary
-        run: pyinstaller --target-architecture=x86_64 src/lang_detect.py
+        run: pyinstaller lang_detect.spec
+      - name: Copy config files
+        run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
-        run: zip -r lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-x86_64.zip dist/
+        run: cd dist/ && zip -r ../lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-x86_64.zip dist/ %% cd ../
       - name: Upload ZIP to FTP
         run: |
           curl -T lang-detect_${{ needs.prepare.outputs.short_sha }}_macos-x86_64.zip ftp://dev.linux.build.pdfix.net/public/builds/plug-ins/lang-detect/main/${{ needs.prepare.outputs.short_sha }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs 
