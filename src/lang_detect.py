@@ -5,6 +5,8 @@ from langdetect import detect
 from pdfixsdk.Pdfix import *
 from pdfixsdk.Pdfix import GetPdfix
 
+pdfix = GetPdfix()
+
 
 def detect_lang_for_text(text: str) -> str:
     return detect(text)
@@ -31,7 +33,6 @@ def getText(element, words):
 
 
 def detect_pdf_lang(in_path: str, out_path: str):
-    pdfix = GetPdfix()
     if pdfix is None:
         raise Exception("Pdfix Initialization fail")
 
@@ -91,7 +92,15 @@ def main():
         "-i", "--input", help="Input text or path to PDF file", type=str, required=True
     )
     parser.add_argument("-o", "--output", help="Output text file", required=True)
+    parser.add_argument("--license-name", help="License name", required=False)
+    parser.add_argument("--license-key", help="License key", required=False)
     args = parser.parse_args()
+
+    if args.license_name and args.license_key:
+        if not pdfix.GetAccountAuthorization().Authorize(
+            args.license_name, args.license_key
+        ):
+            print("Failed to authorize PDFix SDK")
 
     inp = str(args.input)
 
