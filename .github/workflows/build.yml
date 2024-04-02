@@ -28,6 +28,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.11'
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
@@ -50,6 +54,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.11'
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv venv
+          source venv\Scripts\activate
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Build binary
@@ -72,6 +80,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.11'
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Build ARM64 binary
@@ -94,6 +106,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.11'
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
       - name: Install dependencies
         run: pip install pyinstaller
       - name: Build x86_64 binary
