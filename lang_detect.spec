@@ -7,7 +7,7 @@ block_cipher = None
 a = Analysis(
     ['src/lang_detect.py'],
     pathex=[],
-    binaries=[],
+    binaries=[('venv/lib/python3.11/site-packages/pdfixsdk/', 'pdfixsdk/')],
     datas=[],
     hiddenimports=[],
     hookspath=[],
