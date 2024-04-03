@@ -3,14 +3,20 @@
     "type": "custom",
     "name": "lang_detect",
     "cmd": "lang_detect",
-    "path": "${PUGIN_FOLDER}",
+    "title": "Language detection",
+    "desc": "Detecting language of given document or text.",
+    "path": "${PLUGIN_FOLDER}",
     "args": [
       {
-        "name": "--input_pdf",
+        "title": "Input",
+        "desc": "Input file.",
+        "name": "--input",
         "type": "file_path",
         "value": "${INPUT_FILE}"
       },
       {
+        "title": "Output",
+        "desc": "Output file.",
         "name": "--output",
         "type": "file_path",
         "value": "${OUTPUT_FILE}"
