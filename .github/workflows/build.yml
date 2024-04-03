@@ -34,6 +34,7 @@ jobs:
           source venv/bin/activate
       - name: Install dependencies
         run: |
+          source venv/bin/activate
           pip install -r requirements.txt
       - name: Build binary
         run: pyinstaller lang_detect.spec
