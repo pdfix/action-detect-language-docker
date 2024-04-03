@@ -37,7 +37,9 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
       - name: Build binary
-        run: pyinstaller lang_detect.spec
+        run: |
+          source venv/bin/activate
+          pyinstaller lang_detect.spec
       - name: Copy config files
         run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
@@ -60,9 +62,13 @@ jobs:
           python -m venv venv
           source venv\Scripts\activate
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          source venv\Scripts\activate
+          pip install -r requirements.txt
       - name: Build binary
-        run: pyinstaller lang_detect.spec
+        run: |
+          source venv\Scripts\activate
+          pyinstaller lang_detect.spec
       - name: Copy config files
         run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
@@ -86,9 +92,13 @@ jobs:
           python -m venv venv
           source venv/bin/activate
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          source venv/bin/activate
+          pip install -r requirements.txt
       - name: Build ARM64 binary
-        run: pyinstaller lang_detect.spec
+        run: |
+          source venv/bin/activate
+          pyinstaller lang_detect.spec
       - name: Copy config files
         run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
@@ -112,9 +122,13 @@ jobs:
           python -m venv venv
           source venv/bin/activate
       - name: Install dependencies
-        run: pip install pyinstaller
+        run: |
+          source venv/bin/activate
+          pip install pyinstaller
       - name: Build x86_64 binary
-        run: pyinstaller lang_detect.spec
+        run: |
+          source venv/bin/activate
+          pyinstaller lang_detect.spec
       - name: Copy config files
         run: cp config.json dist/lang_detect/
       - name: Zip the dist folder
