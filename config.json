@@ -18,7 +18,7 @@
         "title": "Output",
         "desc": "Output file.",
         "name": "--output",
-        "type": "file_path",
+        "type": "file_path_save",
         "value": "${OUTPUT_FILE}"
       }
     ]
