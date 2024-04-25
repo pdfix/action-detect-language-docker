@@ -1,13 +1,32 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
 
 block_cipher = None
+
+
+def find_pdfixsdk(start_path):
+    for root, dirs, files in os.walk(start_path):
+        if 'pdfixsdk' in dirs:
+            pdfixsdk_path = os.path.join(root, 'pdfixsdk')
+            return pdfixsdk_path
+    return None
+
+
+path = os.getcwd()
+
+pdfix_sdk = find_pdfixsdk(path)
+
+if pdfix_sdk:
+    print("Found directory:", pdfix_sdk)
+else:
+    print("No directory found with prefix:", prefix)
 
 
 a = Analysis(
     ['src/lang_detect.py'],
     pathex=[],
-    binaries=[('venv/lib/python3.11/site-packages/pdfixsdk/', 'pdfixsdk/')],
+    binaries=[(pdfix_sdk, 'pdfixsdk/')],
     datas=[],
     hiddenimports=[],
     hookspath=[],
