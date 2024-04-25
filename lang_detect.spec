@@ -26,8 +26,8 @@ else:
 a = Analysis(
     ['src/lang_detect.py'],
     pathex=[],
-    binaries=[(pdfix_sdk, 'pdfixsdk/')],
-    datas=[],
+    binaries=[],
+    datas=[(pdfix_sdk, 'pdfixsdk/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
