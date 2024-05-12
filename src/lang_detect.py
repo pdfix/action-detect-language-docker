@@ -1,6 +1,8 @@
 import argparse
 from collections import Counter
+import shutil
 import os, sys, json
+import tempfile
 from langdetect import detect
 from pdfixsdk.Pdfix import *
 from pdfixsdk.Pdfix import GetPdfix
@@ -75,15 +77,24 @@ def detect_pdf_lang(in_path: str, out_path: str):
 
     if out_path.endswith(".pdf"):
         doc.SetLang(most_common_lang[0][0])
-        doc.Save(out_path, kSaveFull)
+
+        # save pdf to temporary file
+        temp_file = tempfile.NamedTemporaryFile()
+        doc.Save(temp_file.name, kSaveFull)
+
+        # close pdf
+        doc.Close()
+
+        # copy temp file to output path
+        shutil.copyfile(temp_file.name, out_path)
+
+        temp_file.close()
 
     else:
         if not os.path.exists(os.path.dirname(out_path)):
             os.makedirs(os.path.dirname(out_path))
         with open(out_path, "w") as f:
             f.write(most_common_lang[0][0])
-
-    doc.Close()
 
 
 def main():
