@@ -74,7 +74,7 @@ def detect_pdf_lang(in_path: str, out_path: str):
     most_common_lang = string_counts.most_common(1)
 
     if out_path.endswith(".pdf"):
-        doc.SetInfo("Lang", most_common_lang[0][0])
+        doc.SetLang(most_common_lang[0][0])
         doc.Save(out_path, kSaveFull)
 
     else:
