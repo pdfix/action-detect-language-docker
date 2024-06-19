@@ -114,11 +114,11 @@ def main():
             print("Failed to authorize PDFix SDK")
 
     inp = str(args.input)
-
-    if os.path.isabs(args.output):
-        out = args.output
-    else:
-        out = os.path.join(os.path.dirname(__file__), args.output)
+    out = str(args.output)
+    # if os.path.isabs(args.output):
+    #     out = args.output
+    # else:
+    #     out = os.path.join(os.path.dirname(__file__), args.output)
 
     if inp.endswith(".pdf"):
         try:
