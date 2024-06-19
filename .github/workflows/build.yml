@@ -60,14 +60,14 @@ jobs:
       - name: Create and activate virtual environment
         run: |
           python -m venv venv
-          source venv\Scripts\activate
+          .\venv\Scripts\activate
       - name: Install dependencies
         run: |
-          source venv\Scripts\activate
+          .\venv\Scripts\activate
           pip install -r requirements.txt
       - name: Build binary
         run: |
-          source venv\Scripts\activate
+          .\venv\Scripts\activate
           pyinstaller lang_detect.spec
       - name: Copy config files
         run: cp config.json dist/lang_detect/
@@ -124,7 +124,7 @@ jobs:
       - name: Install dependencies
         run: |
           source venv/bin/activate
-          pip install pyinstaller
+          pip install -r requirements.txt
       - name: Build x86_64 binary
         run: |
           source venv/bin/activate
