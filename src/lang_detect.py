@@ -1,4 +1,4 @@
-import argparse
+import argparse, logging
 from collections import Counter
 import shutil
 import os, sys, json
@@ -8,6 +8,14 @@ from pdfixsdk.Pdfix import *
 from pdfixsdk.Pdfix import GetPdfix
 
 pdfix = GetPdfix()
+
+# Create and configure logger
+logging.basicConfig(
+    filename="log.log", format="%(asctime)s %(message)s", filemode="a"
+)
+# Creating an object
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def detect_lang_for_text(text: str) -> str:
@@ -40,7 +48,7 @@ def detect_pdf_lang(in_path: str, out_path: str):
 
     doc = pdfix.OpenDoc(in_path, "")
     if doc is None:
-        raise Exception("Unable to open pdf : " + pdfix.GetError())
+        raise Exception("Unable to open pdf : " + str(pdfix.GetError()))
 
     lang_list = []
 
@@ -76,6 +84,8 @@ def detect_pdf_lang(in_path: str, out_path: str):
     most_common_lang = string_counts.most_common(1)
 
     if out_path.endswith(".pdf"):
+        logger.debug("Set document language " + most_common_lang[0][0])
+
         doc.SetLang(most_common_lang[0][0])
 
         # save pdf to temporary file
@@ -85,17 +95,18 @@ def detect_pdf_lang(in_path: str, out_path: str):
         # close pdf
         doc.Close()
 
+        logger.debug("Document closed")
+
         # copy temp file to output path
-        shutil.copyfile(temp_file.name, out_path)
+        shutil.copyfile(temp_file.name, os.path.join(os.getcwd(), out_path))
+        logger.debug("Document copied to " + os.path.join(os.getcwd(), out_path))
 
         temp_file.close()
-
     else:
         if not os.path.exists(os.path.dirname(out_path)):
             os.makedirs(os.path.dirname(out_path))
         with open(out_path, "w") as f:
             f.write(most_common_lang[0][0])
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -113,12 +124,8 @@ def main():
         ):
             print("Failed to authorize PDFix SDK")
 
-    inp = str(args.input)
-    out = str(args.output)
-    # if os.path.isabs(args.output):
-    #     out = args.output
-    # else:
-    #     out = os.path.join(os.path.dirname(__file__), args.output)
+    inp = os.path.join(os.getcwd(), os.path.expanduser(str(args.input)))
+    out = os.path.join(os.getcwd(),os.path.expanduser(str(args.output)))
 
     if inp.endswith(".pdf"):
         try:
@@ -138,7 +145,6 @@ def main():
             os.makedirs(os.path.dirname(out))
         with open(out, "w") as f:
             f.write(lang)
-
 
 if __name__ == "__main__":
     main()
