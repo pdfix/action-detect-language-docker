@@ -10,6 +10,7 @@
       "name": "Language detection",
       "desc": "Detecting language of given document or text.",
       "path": "user-defined command folder",
+      "category": "Accessibility",
       "program": "lang_detect",
       "stdout": "",
       "stderr": "",
