@@ -61,24 +61,31 @@
         {
           "name": "Input PDF",
           "desc": "Input PDF file",
+          "flags": 2,
+          "ext": "pdf",
           "type": "file_path",
           "value": "user-defined file path"
         },
         {
           "name": "Output PDF",
           "desc": "Output PDF file.",
+          "flags": 4,
+          "ext": "pdf",
           "type": "file_path_save",
           "value": "user-defined file path"
         },
         {
           "name": "Input Text",
           "desc": "Text used to detect language",
+          "flags": 2,
           "type": "string",
           "value": "text for language detection"
         },
         {
           "name": "Output TXT",
           "desc": "Output TXT file where is result of detection saved.",
+          "flags": 4,
+          "ext": "txt",
           "type": "file_path_save",
           "value": "user-defined file path"
         }
