@@ -1,11 +1,11 @@
 {
-  "name": "Pipeline Language Detection",
-  "desc": "Pipeline running Language Detection command.",
+  "name": "Language Detection",
+  "desc": "Action running Language Detection.",
   "version": {
     "major": 1,
     "minor": 0
   },
-  "pipeline": [
+  "actions": [
     {
       "name": "Language detection",
       "desc": "Detecting language of given document or text.",
