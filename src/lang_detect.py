@@ -1,27 +1,31 @@
-import argparse
-from collections import Counter
+import os
 import shutil
-import os, sys, json
+import sys
 import tempfile
-from langdetect import detect
-from pdfixsdk.Pdfix import *
-from pdfixsdk.Pdfix import GetPdfix
+from collections import Counter
 
-pdfix = GetPdfix()
+from langdetect import detect
+from pdfixsdk.Pdfix import GetPdfix, PdeText, kPdeText, kSaveFull
+
+
+class PdfixException(Exception):
+    def __init__(self, message: str = "") -> None:
+        self.errno = GetPdfix().GetErrorType()
+        self.add_note(message if len(message) else str(GetPdfix().GetError()))
 
 
 def detect_lang_for_text(text: str) -> str:
     return detect(text)
 
 
-def getText(element, words):
+def get_text(element, words) -> None:
     if len(words) > 100:
         return
 
-    elemType = element.GetType()
-    if kPdeText == elemType:
-        textElem = PdeText(element.obj)
-        text = textElem.GetText()
+    elem_type = element.GetType()
+    if kPdeText == elem_type:
+        text_elem = PdeText(element.obj)
+        text = text_elem.GetText()
         for w in text.split():
             words.append(w)
     else:
@@ -31,12 +35,21 @@ def getText(element, words):
         for i in range(0, count):
             child = element.GetChild(i)
             if child is not None:
-                getText(child, words)
+                get_text(child, words)
 
 
-def detect_pdf_lang(in_path: str, out_path: str):
+def detect_lang_pdf_2_pdf(
+    in_path: str, out_path: str, license_name: str, license_key: str
+):
+    pdfix = GetPdfix()
     if pdfix is None:
         raise Exception("Pdfix Initialization fail")
+
+    if license_name and license_key:
+        if not pdfix.GetAccountAuthorization().Authorize(license_name, license_key):
+            raise Exception("Pdfix Authorization fail")
+    else:
+        print("No license name or key provided. Using Pdfix trial")
 
     doc = pdfix.OpenDoc(in_path, "")
     if doc is None:
@@ -51,23 +64,22 @@ def detect_pdf_lang(in_path: str, out_path: str):
             raise Exception("Acquire Page fail : " + pdfix.GetError())
 
         # get the page map of the current page
-        pageMap = page.AcquirePageMap()
-        if pageMap is None:
+        page_map = page.AcquirePageMap()
+        if page_map is None:
             raise Exception("Acquire PageMap fail: " + pdfix.GetError())
-        if not pageMap.CreateElements(0, None):
+        if not page_map.CreateElements(0, None):
             raise Exception("Acquire PageMap fail: " + pdfix.GetError())
 
         # get page container
-        container = pageMap.GetElement()
+        container = page_map.GetElement()
         if container is None:
             raise Exception("Get page element failure : " + pdfix.GetError())
 
-        words = []
-        getText(container, words)
-        # print(words)
+        words: list[str] = []
+        get_text(container, words)
+
         lang = detect_lang_for_text(" ".join(words))
         lang_list.append(lang)
-        # print(lang)
 
     # Count the frequency of each string
     string_counts = Counter(lang_list)
@@ -93,52 +105,92 @@ def detect_pdf_lang(in_path: str, out_path: str):
     else:
         if not os.path.exists(os.path.dirname(out_path)):
             os.makedirs(os.path.dirname(out_path))
-        with open(out_path, "w") as f:
+        with open(out_path, "w", encoding="utf-8") as f:
             f.write(most_common_lang[0][0])
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-i", "--input", help="Input text or path to PDF file", type=str, required=True
-    )
-    parser.add_argument("-o", "--output", help="Output text file", required=True)
-    parser.add_argument("--license-name", help="License name", required=False)
-    parser.add_argument("--license-key", help="License key", required=False)
-    args = parser.parse_args()
+def detect_lang_pdf_2_txt(
+    in_path: str,
+    out_path: str,
+    license_name: str,
+    license_key: str,
+) -> None:
+    pdfix = GetPdfix()
+    if pdfix is None:
+        raise Exception("Pdfix Initialization fail")
 
-    if args.license_name and args.license_key:
-        if not pdfix.GetAccountAuthorization().Authorize(
-            args.license_name, args.license_key
-        ):
-            print("Failed to authorize PDFix SDK")
-
-    inp = str(args.input)
-
-    if os.path.isabs(args.output):
-        out = args.output
+    if license_name and license_key:
+        if not pdfix.GetAccountAuthorization().Authorize(license_name, license_key):
+            raise Exception("Pdfix Authorization fail")
     else:
-        out = os.path.join(os.path.dirname(__file__), args.output)
+        print("No license name or key provided. Using Pdfix trial")
 
-    if inp.endswith(".pdf"):
-        try:
-            detect_pdf_lang(inp, out)
-        except Exception as e:
-            print("Failed to detect PDF language. {}".format(e), file=sys.stderr)
+    doc = pdfix.OpenDoc(in_path, "")
+    if doc is None:
+        raise Exception("Unable to open pdf : " + pdfix.GetError())
 
-    elif inp.endswith(".json"):
-        raise NotImplementedError
+    lang_list = []
 
-    else:
-        lang = detect_lang_for_text(inp)
-        if out.endswith(".pdf"):
-            print("If input is plain text, output cannot be PDF file", file=sys.stderr)
-            exit(1)
-        if not os.path.exists(os.path.dirname(out)):
-            os.makedirs(os.path.dirname(out))
-        with open(out, "w") as f:
-            f.write(lang)
+    for i in range(0, doc.GetNumPages()):
+        # acquire page
+        page = doc.AcquirePage(i)
+        if page is None:
+            raise Exception("Acquire Page fail : " + pdfix.GetError())
+
+        # get the page map of the current page
+        page_map = page.AcquirePageMap()
+        if page_map is None:
+            raise Exception("Acquire PageMap fail: " + pdfix.GetError())
+        if not page_map.CreateElements(0, None):
+            raise Exception("Acquire PageMap fail: " + pdfix.GetError())
+
+        # get page container
+        container = page_map.GetElement()
+        if container is None:
+            raise Exception("Get page element failure : " + pdfix.GetError())
+
+        words: list[str] = []
+        get_text(container, words)
+
+        lang = detect_lang_for_text(" ".join(words))
+        lang_list.append(lang)
+
+    # Count the frequency of each string
+    string_counts = Counter(lang_list)
+
+    # Get the string(s) that occur the most
+    most_common_lang = string_counts.most_common(1)
+
+    if not os.path.exists(os.path.dirname(out_path)):
+        os.makedirs(os.path.dirname(out_path))
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(most_common_lang[0][0])
 
 
-if __name__ == "__main__":
-    main()
+def detect_lang_txt_2_txt(input: str, output: str) -> None:
+    try:
+        with open(input, "r", encoding="utf-8") as infile:
+            text = infile.read()
+
+        detected_language = detect_lang_for_text(text)
+
+        with open(output, "w", encoding="utf-8") as outfile:
+            outfile.write(detected_language)
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}", file=sys.stderr)
+        sys.exit(1)
+
+
+def detect_lang_str_2_txt(input_text: str, output: str) -> None:
+    try:
+        # Detect the language of the input text
+        detected_language = detect_lang_for_text(input_text)
+
+        # Write the detected language to the output file
+        with open(output, "w", encoding="utf-8") as outfile:
+            outfile.write(detected_language)
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}", file=sys.stderr)
+        sys.exit(1)
