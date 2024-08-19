@@ -1,6 +1,8 @@
 import argparse
 import os
+import shutil
 import sys
+from pathlib import Path
 
 from lang_detect import (
     detect_lang_pdf_2_pdf,
@@ -8,6 +10,12 @@ from lang_detect import (
     detect_lang_str_2_txt,
     detect_lang_txt_2_txt,
 )
+
+
+def get_config(out_dir: str) -> None:
+    tgt = os.path.join(Path(__file__).parent.absolute(), "../config.json")
+    dst = os.path.join(out_dir, "config.json")
+    shutil.copyfile(tgt, dst)
 
 
 def main() -> None:
@@ -19,11 +27,22 @@ def main() -> None:
         "-o",
         "--output",
         type=str,
-        help="The output PDF or text file.\nPDF output is only valid if input is also PDF.",
+        help="The output PDF or text file.\
+        PDF output is only valid if input is also PDF.",
     )
     parser.add_argument("--name", type=str, default="", help="Pdfix license name")
     parser.add_argument("--key", type=str, default="", help="Pdfix license key")
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Save config file to local directory from docker",
+    )
     args = parser.parse_args()
+
+    if args.config:
+        print("copy config.json: {}".format(args.config))
+        get_config(args.config)
+        sys.exit(0)
 
     if not args.input or not args.output:
         parser.error("The following arguments are required: -i/--input, -o/--output")

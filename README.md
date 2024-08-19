@@ -1,29 +1,39 @@
-# README #
+# PDF Language Detection Docker App
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This Docker application is designed to automatically detect the language of a PDF file. It utilizes a configuration file for customizable options and can be executed through various command-line arguments.
 
-### What is this repository for? ###
+## Table of Contents
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Usage](#usage)
+  - [Exporting Configuration](#exporting-configuration)
+  - [Running the Language Detection](#running-the-language-detection)
+- [CLI Arguments](#cli-arguments)
+- [License](#license)
 
-### How do I get set up? ###
+## Getting Started
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+To use this Docker application, you'll need to have Docker installed on your system. If Docker is not installed, please follow the instructions on the [official Docker website](https://docs.docker.com/get-docker/) to install it.
 
-### Contribution guidelines ###
+## Usage
+### Exporting Configuration
+To export the configuration file, use the following command:
+```bash
+docker run -v <local_dir>:/data/ --rm pdfix/lang-detect:latest --config /data/
+```
 
-* Writing tests
-* Code review
-* Other guidelines
+### Running the Language Detection
+To run the language detection process on a PDF file with the following command:
+```bash
+docker run -v <local_dir>:/data/ --rm pdfix/lang-detect:latest -i /data/<example.pdf> -o /data/out.pdf
+```
 
-### Who do I talk to? ###
+### CLI Arguments
+For more detailed information about the available command-line arguments, you can run the following command:
 
-* Repo owner or admin
-* Other community or team contact
+```bash
+docker run --rm pdfix/lang-detect:latest --help
+```
+
+## License
