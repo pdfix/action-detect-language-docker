@@ -47,7 +47,7 @@ def detect_lang_pdf_2_pdf(
 
     if license_name and license_key:
         if not pdfix.GetAccountAuthorization().Authorize(license_name, license_key):
-            raise Exception("Pdfix Authorization fail")
+            raise Exception("Pdfix SDK Authorization fail")
     else:
         print("No license name or key provided. Using Pdfix trial")
 
@@ -87,6 +87,8 @@ def detect_lang_pdf_2_pdf(
     # Get the string(s) that occur the most
     most_common_lang = string_counts.most_common(1)
 
+    print("Detected language: " + most_common_lang[0][0])
+
     if out_path.endswith(".pdf"):
         doc.SetLang(most_common_lang[0][0])
 
@@ -107,8 +109,7 @@ def detect_lang_pdf_2_pdf(
             os.makedirs(os.path.dirname(out_path))
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(most_common_lang[0][0])
-
-
+        
 def detect_lang_pdf_2_txt(
     in_path: str,
     out_path: str,
@@ -161,10 +162,12 @@ def detect_lang_pdf_2_txt(
     # Get the string(s) that occur the most
     most_common_lang = string_counts.most_common(1)
 
+    print("Detected language: " + most_common_lang[0][0])
+
     if not os.path.exists(os.path.dirname(out_path)):
         os.makedirs(os.path.dirname(out_path))
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(most_common_lang[0][0])
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(most_common_lang[0][0])
 
 
 def detect_lang_txt_2_txt(input: str, output: str) -> None:
@@ -173,6 +176,8 @@ def detect_lang_txt_2_txt(input: str, output: str) -> None:
             text = infile.read()
 
         detected_language = detect_lang_for_text(text)
+
+        print("Detected language: " + detected_language)
 
         with open(output, "w", encoding="utf-8") as outfile:
             outfile.write(detected_language)
@@ -186,6 +191,8 @@ def detect_lang_str_2_txt(input_text: str, output: str) -> None:
     try:
         # Detect the language of the input text
         detected_language = detect_lang_for_text(input_text)
+
+        print("Detected language: " + detected_language)
 
         # Write the detected language to the output file
         with open(output, "w", encoding="utf-8") as outfile:

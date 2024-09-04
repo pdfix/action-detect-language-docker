@@ -17,6 +17,7 @@ build/
 dist/
 venv/
 env/
+.venv/
 
 # Log files
 *.log
