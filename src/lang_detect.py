@@ -67,7 +67,7 @@ def detect_lang_pdf_2_pdf(
         page_map = page.AcquirePageMap()
         if page_map is None:
             raise Exception("Acquire PageMap fail: " + pdfix.GetError())
-        if not page_map.CreateElements(0, None):
+        if not page_map.CreateElements():
             raise Exception("Acquire PageMap fail: " + pdfix.GetError())
 
         # get page container
@@ -142,7 +142,7 @@ def detect_lang_pdf_2_txt(
         page_map = page.AcquirePageMap()
         if page_map is None:
             raise Exception("Acquire PageMap fail: " + pdfix.GetError())
-        if not page_map.CreateElements(0, None):
+        if not page_map.CreateElements():
             raise Exception("Acquire PageMap fail: " + pdfix.GetError())
 
         # get page container

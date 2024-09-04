@@ -4,7 +4,7 @@ charset-normalizer==3.3.2
 idna==3.6
 langdetect==1.0.9
 packaging==24.0
-pdfix-sdk==7.3.3
+pdfix-sdk==8.2.0
 pyinstaller==5.13.2
 pyinstaller-hooks-contrib==2024.3
 requests==2.31.0
