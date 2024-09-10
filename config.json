@@ -46,7 +46,7 @@
           "value": ""
         },
         {
-          "name": "OUPTUT_PDF",
+          "name": "OUTPUT_PDF",
           "desc": "Output PDF file.",
           "flags": 4,
           "ext": "pdf",
