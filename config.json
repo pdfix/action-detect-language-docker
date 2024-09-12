@@ -15,7 +15,7 @@
       "returnCodes" : [0],
       "configurations": [
         {
-          "program": "docker run -v ${WORKING_DIRECTORY}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${INPUT_PDF}) -o $(basename ${OUTPUT_PDF})",
+          "program": "docker run -v ${WORKING_DIRECTORY}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${INPUT_PDF}) -o $(basename ${OUTPUT_PDF}) --name ${LICENSE_NAME} --key ${LICENSE_KEY}",
           "args": [
             "--input",
             "${INPUT_PDF}",
@@ -26,7 +26,7 @@
           "desc": "Detecting language of given document and save it into output document."
         },
         {
-          "program": "docker run -v ${WORKING_DIRECTORY}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${INPUT_PDF}) -o $(basename ${OUTPUT_TXT})",
+          "program": "docker run -v ${WORKING_DIRECTORY}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${INPUT_PDF}) -o $(basename ${OUTPUT_TXT}) --name ${LICENSE_NAME} --key ${LICENSE_KEY}",
           "args": [
             "--input",
             "${INPUT_PDF}",
