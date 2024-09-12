@@ -27,4 +27,4 @@ COPY config.json /usr/lang-detect/
 COPY run.sh /usr/lang-detect/
 COPY src/ /usr/lang-detect/src/
 
-ENTRYPOINT ["venv/bin/python3", "src/main.py"]
+ENTRYPOINT ["/usr/lang-detect/venv/bin/python3", "/usr/lang-detect/src/main.py"]
