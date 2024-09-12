@@ -23,12 +23,12 @@ To use this Docker application, you'll need to have Docker installed on your sys
 To run docker container as CLI you should share the folder with PDF to process using `-i` parameter. In this example it's current folder.
 
 ```bash
-docker run -v $(pwd):/data -w /data --rm pdfix/lang-detect:latest land-detect -i input.pdf -o output.pdf
+docker run -v $(pwd):/data -w /data --rm pdfix/lang-detect:latest lang-detect -i input.pdf -o output.pdf
 ```
 
 Just detect language and save language code to txt file
 ```bash
-docker run -v $(pwd):/data -w /data --rm pdfix/lang-detect:latest land-detect -i input.pdf -o output.txt
+docker run -v $(pwd):/data -w /data --rm pdfix/lang-detect:latest lang-detect -i input.pdf -o output.txt
 ```
 With PDFix License add these arguments. 
 ```bash

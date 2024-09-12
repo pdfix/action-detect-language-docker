@@ -28,13 +28,17 @@ def main() -> None:
     parser.add_argument("--key", type=str, default="", help="license key")
 
     subparsers = parser.add_subparsers(dest="subparser")
-    pars_config = subparsers.add_parser("config")
+
+    # get config subparser
+    pars_config = subparsers.add_parser("config", help="Extract config file for integration")
     pars_config.add_argument(
         "-o",
         "--output",
         type=str,
         help="Output to save the config JSON file. Application output is used if not provided",
     )
+
+    # lang-detect subparser
     lang_detect = subparsers.add_parser("lang-detect", help="Detect language of a PDF or text provided in the input. The detected languate is printed as an output.")
     lang_detect.add_argument("-i", "--input", type=str, help="The input PDF or text to detect", required=True)
     lang_detect.add_argument(
