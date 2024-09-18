@@ -47,7 +47,14 @@ def main() -> None:
         type=str,
         help="Output to save a PDF documet if input is a PDF document.",
     )
-    args = parser.parse_args()
+    # args = parser.parse_args()
+    try:
+        args = parser.parse_args()
+    except SystemExit as e:
+        if e.code == 0:  # This happens when --help is used, exit gracefully
+            sys.exit(0)
+        print("Failed to parse arguments. Please check the usage and try again.")
+        sys.exit(1)
 
     if args.subparser == "config":
         get_config(args.output)
