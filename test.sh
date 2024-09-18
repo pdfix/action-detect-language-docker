@@ -27,7 +27,7 @@ pushd "$(dirname $0)" > /dev/null
 
 EXIT_STATUS=0
 
-img="lang-detect"
+img="lang-detect:test"
 pltfm="--platform linux/amd64"
 
 info "Building docker image..."
