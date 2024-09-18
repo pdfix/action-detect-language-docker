@@ -1,15 +1,37 @@
 #!/bin/bash
 
 # local docker test 
-info() { echo -e "\033[1;35m$1\033[0m"; }
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+PURPLE='\033[0;35m'
+NC='\033[0m' # No Color
+
+# Function to print info messages
+info() {
+    echo -e "${PURPLE}$1${NC}"
+}
+
+# Function to print success messages
+success() {
+    echo -e "${GREEN}$1${NC}"
+}
+
+# Function to print error messages
+error() {
+    echo -e "${RED}ERROR: $1${NC}"
+}
 
 # init
 pushd "$(dirname $0)" > /dev/null
 
+EXIT_STATUS=0
+
 img="lang-detect"
 pltfm="--platform linux/amd64"
 
-docker build --rm -t $img .
+info "Building docker image..."
+docker build --rm -t $img . 
 
 tmp_dir=".test"
 
@@ -18,33 +40,53 @@ if [ -d "$(pwd)/$tmp_dir" ]; then
 fi
 mkdir -p $(pwd)/$tmp_dir
 
-info "just list files in cwd"
+info "List files in cwd"
 docker run -it  -v $(pwd):/data -w /data --entrypoint ls $img
 
-info "show help"
-docker run $pltfm -it -v $(pwd):/data -w /data $img --help
-
-info "extract config"
-docker run -it  -v $(pwd):/data -w /data $img config -o $tmp_dir/config.json
-if [ ! -f "$(pwd)/$tmp_dir/config.json" ]; then
-  echo "config.json not saved"
-  exit 1
+info "Test #01: Show help"
+docker run $pltfm -it -v $(pwd):/data -w /data $img --help > /dev/null
+if [ $? -eq 0 ]; then
+    success "passed"
+else
+    error "Failed to run \"--help\" command"
+    EXIT_STATUS=1
 fi
 
-info "run lang-detect to pdf" 
-docker run -it  -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.pdf
-if [ ! -f "$(pwd)/$tmp_dir/air_quality.pdf" ]; then
-  echo "lang-detect to pdf failed on example/air_quality.pdf"
-  exit 1
+
+info "Test #02: Extract config"
+docker run -it  -v $(pwd):/data -w /data $img config -o $tmp_dir/config.json > /dev/null
+if [ -f "$(pwd)/$tmp_dir/config.json" ]; then
+  success "passed"
+else
+  error "config.json not saved"
+  EXIT_STATUS=1
 fi
 
-info "run lang-detect to txt" 
-docker run -it  -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.txt
-if [ ! -f "$(pwd)/$tmp_dir/air_quality.txt" ]; then
-  echo "lang-detect to txt failed on example/air_quality.pdf"
-  exit 1
+info "Test #03: Run lang-detect to pdf" 
+docker run -it  -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.pdf > /dev/null
+if [ -f "$(pwd)/$tmp_dir/air_quality.pdf" ]; then
+  success "passed"
+else
+  error "lang-detect to pdf failed on example/air_quality.pdf"
+  EXIT_STATUS=1
 fi
 
-popd
+info "Test #04: Run lang-detect to txt" 
+docker run -it  -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.txt > /dev/null
+if [ -f "$(pwd)/$tmp_dir/air_quality.txt" ]; then
+  success "passed"
+else
+  error "lang-detect to pdf failed on example/air_quality.pdf"
+  EXIT_STATUS=1
+fi
 
-echo "SUCCESS"
+popd > /dev/null
+
+if [ $EXIT_STATUS -eq 1 ]; then
+    error "One or more tests failed."
+    exit 1
+else
+    success "All tests passed."
+    exit 0
+fi
+
