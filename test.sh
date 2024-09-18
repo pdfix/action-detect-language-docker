@@ -41,10 +41,10 @@ fi
 mkdir -p $(pwd)/$tmp_dir
 
 info "List files in cwd"
-docker run -it  -v $(pwd):/data -w /data --entrypoint ls $img
+docker run -v $(pwd):/data -w /data --entrypoint ls $img
 
 info "Test #01: Show help"
-docker run $pltfm -it -v $(pwd):/data -w /data $img --help > /dev/null
+docker run $pltfm -v $(pwd):/data -w /data $img --help > /dev/null
 if [ $? -eq 0 ]; then
     success "passed"
 else
@@ -54,7 +54,7 @@ fi
 
 
 info "Test #02: Extract config"
-docker run -it  -v $(pwd):/data -w /data $img config -o $tmp_dir/config.json > /dev/null
+docker run -v $(pwd):/data -w /data $img config -o $tmp_dir/config.json > /dev/null
 if [ -f "$(pwd)/$tmp_dir/config.json" ]; then
   success "passed"
 else
@@ -63,7 +63,7 @@ else
 fi
 
 info "Test #03: Run lang-detect to pdf" 
-docker run -it  -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.pdf > /dev/null
+docker run -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.pdf > /dev/null
 if [ -f "$(pwd)/$tmp_dir/air_quality.pdf" ]; then
   success "passed"
 else
@@ -72,7 +72,7 @@ else
 fi
 
 info "Test #04: Run lang-detect to txt" 
-docker run -it  -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.txt > /dev/null
+docker run -v $(pwd):/data -w /data $img lang-detect -i example/air_quality.pdf -o $tmp_dir/air_quality.txt > /dev/null
 if [ -f "$(pwd)/$tmp_dir/air_quality.txt" ]; then
   success "passed"
 else
