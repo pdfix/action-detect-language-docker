@@ -24,7 +24,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy sources and resources
 COPY config.json /usr/lang-detect/
-COPY run.sh /usr/lang-detect/
 COPY src/ /usr/lang-detect/src/
 
 ENTRYPOINT ["/usr/lang-detect/venv/bin/python3", "/usr/lang-detect/src/main.py"]

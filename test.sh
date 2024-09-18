@@ -83,10 +83,10 @@ fi
 popd > /dev/null
 
 if [ $EXIT_STATUS -eq 1 ]; then
-    error "One or more tests failed."
-    exit 1
+  error "One or more tests failed."
+  exit 1
 else
-    success "All tests passed."
-    exit 0
+  success "All tests passed."
+  exit 0
 fi
 
