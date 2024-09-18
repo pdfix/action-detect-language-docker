@@ -39,7 +39,10 @@ def get_text(element, words) -> None:
 
 
 def detect_lang_pdf_2_pdf(
-    in_path: str, out_path: str, license_name: str, license_key: str
+    in_path: str,
+    out_path: str,
+    license_name: str,
+    license_key: str,
 ):
     pdfix = GetPdfix()
     if pdfix is None:
@@ -109,7 +112,8 @@ def detect_lang_pdf_2_pdf(
             os.makedirs(os.path.dirname(out_path))
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(most_common_lang[0][0])
-        
+
+
 def detect_lang_pdf_2_txt(
     in_path: str,
     out_path: str,
