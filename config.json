@@ -1,40 +1,40 @@
 {
   "name": "Language Detection",
-  "desc": "Action running Language Detection.",
+  "desc": "Detect the language of a PDF document or text.",
   "version": {
     "major": 1,
     "minor": 0
   },
   "actions": [
     {
-      "name": "Language detection",
-      "desc": "Detecting language of given document or text.",
-      "category": "Accessibility",
+      "name": "Language Detection",
+      "desc": "Detect the language of a PDF document or text.",
+      "category": "Metadata",
       "stdout": "",
       "stderr": "",
       "returnCodes" : [0],
       "configurations": [
         {
-          "program": "docker run --platform linux/amd64-v ${WORKING_DIRECTORY}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${INPUT_PDF}) -o $(basename ${OUTPUT_PDF}) --name ${LICENSE_NAME} --key ${LICENSE_KEY}",
+          "program": "docker run --platform linux/amd64-v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${input_pdf}) -o $(basename ${output_pdf}) --name ${license_name} --key ${LICENSE_KEY}",
           "args": [
-            "--input",
-            "${INPUT_PDF}",
-            "--output",
-            "${OUTPUT_PDF}"
-          ],
-          "name": "Detect document language and set it to the document",
-          "desc": "Detecting language of given document and save it into output document."
+            "--name", 
+            "${license_name}", 
+            "--key",
+            "${license_key}"
+         ],
+          "name": "Detect Document Language",
+          "desc": "Detect and set the PDF document language."
         },
         {
-          "program": "docker run --platform linux/amd64 -v ${WORKING_DIRECTORY}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${INPUT_PDF}) -o $(basename ${OUTPUT_TXT}) --name ${LICENSE_NAME} --key ${LICENSE_KEY}",
+          "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${input_pdf}) -o $(basename ${output_txt})",
           "args": [
-            "--input",
-            "${INPUT_PDF}",
-            "--output",
-            "${OUTPUT_TXT}"
+            "--name", 
+            "${license_name}", 
+            "--key",
+            "${license_key}"
           ],
-          "name": "Detect document language",
-          "desc": "Detecting language of given document and save it into output TXT file."
+          "name": "Detect Document Language",
+          "desc": "Detect the PDF document language and save it into output TXT file."
         }        
       ],
       "args": [
