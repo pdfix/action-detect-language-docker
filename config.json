@@ -1,41 +1,25 @@
 {
-  "name": "Language Detection",
-  "desc": "Detect the language of a PDF document or text.",
-  "version": {
-    "major": 1,
-    "minor": 0
-  },
   "actions": [
     {
       "name": "Language Detection",
-      "desc": "Detect the language of a PDF document or text.",
+      "desc": "Detect the language of a PDF document",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "icon": "language",
       "category": "Metadata",
-      "stdout": "",
-      "stderr": "",
-      "returnCodes" : [0],
       "configurations": [
         {
-          "program": "docker run --platform linux/amd64-v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${input_pdf}) -o $(basename ${output_pdf}) --name ${license_name} --key ${LICENSE_KEY}",
-          "args": [
-            "--name", 
-            "${license_name}", 
-            "--key",
-            "${license_key}"
-         ],
+          "program": "docker run --platform linux/amd64-v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest --name \"${license_name}\" --key \"${license_key}\" lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
           "name": "Detect Document Language",
-          "desc": "Detect and set the PDF document language."
+          "desc": "Detect and update the PDF document language"
         },
         {
-          "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest lang-detect -i $(basename ${input_pdf}) -o $(basename ${output_txt})",
-          "args": [
-            "--name", 
-            "${license_name}", 
-            "--key",
-            "${license_key}"
-          ],
+          "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest --name \"${license_name}\" --key \"${license_key}\"  lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
           "name": "Detect Document Language",
-          "desc": "Detect the PDF document language and save it into output TXT file."
-        }        
+          "desc": "Detect the PDF document language and save it into output text file"
+        }
       ],
       "args": [
         {
@@ -58,7 +42,7 @@
           "flags": 4,
           "ext": "txt",
           "value": ""
-        }        
+        }
       ]
     }
   ]
