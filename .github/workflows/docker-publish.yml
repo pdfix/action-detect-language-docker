@@ -45,6 +45,8 @@ jobs:
           else
             echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           fi
+      - name: Update config.json version
+        run: chmod +x update_version.sh && ./update_version.sh ${{ env.tag }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
