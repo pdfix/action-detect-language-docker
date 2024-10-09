@@ -12,33 +12,33 @@
       "configurations": [
         {
           "program": "docker run --platform linux/amd64-v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest --name \"${license_name}\" --key \"${license_key}\" lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
-          "name": "Detect Document Language",
+          "name": "Detect and Update the PDF Language",
           "desc": "Detect and update the PDF document language"
         },
         {
           "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/lang-detect:latest --name \"${license_name}\" --key \"${license_key}\"  lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
-          "name": "Detect Document Language",
+          "name": "Detect the PDF Language",
           "desc": "Detect the PDF document language and save it into output text file"
         }
       ],
       "args": [
         {
-          "name": "INPUT_PDF",
+          "name": "input_pdf",
           "desc": "Input PDF file",
           "flags": 2,
           "ext": "pdf",
           "value": ""
         },
         {
-          "name": "OUTPUT_PDF",
-          "desc": "Output PDF file.",
+          "name": "output_pdf",
+          "desc": "Output PDF file",
           "flags": 4,
           "ext": "pdf",
           "value": ""
         },
         {
-          "name": "OUTPUT_TXT",
-          "desc": "Output text file with result of detection.",
+          "name": "output_txt",
+          "desc": "Output text file with result of detection",
           "flags": 4,
           "ext": "txt",
           "value": ""
