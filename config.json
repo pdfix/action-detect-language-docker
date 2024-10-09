@@ -2,7 +2,7 @@
   "actions": [
     {
       "name": "Language Detection",
-      "desc": "Detect the language of a PDF document",
+      "desc": "A Docker image that automatically detects the language of a PDF file. It uses a configuration file for customizable options and can be run with various command-line arguments.",
       "version": {
         "major": 1,
         "minor": 0

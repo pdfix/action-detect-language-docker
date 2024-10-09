@@ -1,10 +1,10 @@
-# PDF Language Detection Docker App
+# Language Detection
 
-This Docker application is designed to automatically detect the language of a PDF file. It utilizes a configuration file for customizable options and can be executed through various command-line arguments.
+A Docker image that automatically detects the language of a PDF file. It uses a configuration file for customizable options and can be run with various command-line arguments.
 
 ## Table of Contents
 
-- [PDF Language Detection Docker App](#pdf-language-detection-docker-app)
+- [Language Detection](#language-detection)
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
   - [Run using Command Line Interface](#run-using-command-line-interface)
