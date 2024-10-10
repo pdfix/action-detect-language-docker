@@ -26,6 +26,7 @@
           "name": "input_pdf",
           "desc": "Input PDF file",
           "flags": 2,
+          "type": "file_path",
           "ext": "pdf",
           "value": ""
         },
@@ -33,6 +34,7 @@
           "name": "output_pdf",
           "desc": "Output PDF file",
           "flags": 4,
+          "type": "file_path",
           "ext": "pdf",
           "value": ""
         },
@@ -40,6 +42,7 @@
           "name": "output_txt",
           "desc": "Output text file with result of detection",
           "flags": 4,
+          "type": "file_path",
           "ext": "txt",
           "value": ""
         }
