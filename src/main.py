@@ -95,7 +95,7 @@ def main() -> None:  # noqa: D103
             try:
                 detect_lang_pdf_2_pdf(input_file, output_file, args.name, args.key)
             except Exception as e:
-                sys.exit("Failed to run OCR: {}".format(e))
+                sys.exit("Failed to run language detection: {}".format(e))
 
         elif input_file.lower().endswith(".pdf") and output_file.lower().endswith(
             ".txt",

@@ -80,6 +80,15 @@ else
   EXIT_STATUS=1
 fi
 
+info "Test #05: Run lang-detect on pdf with empty page"
+docker run -v $(pwd):/data -w /data $img lang-detect -i example/empty_page.pdf -o $tmp_dir/empty_page.txt > /dev/null
+if [ -f "$(pwd)/$tmp_dir/empty_page.txt" ]; then
+  success "passed"
+else
+  error "lang-detect to pdf failed on example/empty_page.pdf"
+  EXIT_STATUS=1
+fi
+
 popd > /dev/null
 
 if [ $EXIT_STATUS -eq 1 ]; then

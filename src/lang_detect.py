@@ -81,8 +81,9 @@ def detect_lang_pdf_2_pdf(
         words: list[str] = []
         get_text(container, words)
 
-        lang = detect_lang_for_text(" ".join(words))
-        lang_list.append(lang)
+        if words:
+            lang = detect_lang_for_text(" ".join(words))
+            lang_list.append(lang)
 
     # Count the frequency of each string
     string_counts = Counter(lang_list)
@@ -157,8 +158,11 @@ def detect_lang_pdf_2_txt(
         words: list[str] = []
         get_text(container, words)
 
-        lang = detect_lang_for_text(" ".join(words))
-        lang_list.append(lang)
+        print(words)
+        print(i)
+        if words:
+            lang = detect_lang_for_text(" ".join(words))
+            lang_list.append(lang)
 
     # Count the frequency of each string
     string_counts = Counter(lang_list)
@@ -179,12 +183,13 @@ def detect_lang_txt_2_txt(input: str, output: str) -> None:
         with open(input, "r", encoding="utf-8") as infile:
             text = infile.read()
 
-        detected_language = detect_lang_for_text(text)
+        if not text:
+            detected_language = detect_lang_for_text(text)
 
-        print("Detected language: " + detected_language)
+            print("Detected language: " + detected_language)
 
-        with open(output, "w", encoding="utf-8") as outfile:
-            outfile.write(detected_language)
+            with open(output, "w", encoding="utf-8") as outfile:
+                outfile.write(detected_language)
 
     except Exception as e:
         print(f"An error occurred: {str(e)}", file=sys.stderr)
@@ -193,6 +198,9 @@ def detect_lang_txt_2_txt(input: str, output: str) -> None:
 
 def detect_lang_str_2_txt(input_text: str, output: str) -> None:
     try:
+        if not input_text:
+            print("Input is an empty string")
+            sys.exit(1)
         # Detect the language of the input text
         detected_language = detect_lang_for_text(input_text)
 
