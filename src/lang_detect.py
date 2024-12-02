@@ -4,7 +4,7 @@ import sys
 import tempfile
 from collections import Counter
 
-from langdetect import detect
+from langdetect import LangDetectException, detect
 from pdfixsdk.Pdfix import GetPdfix, PdeText, kPdeText, kSaveFull
 
 
@@ -15,7 +15,10 @@ class PdfixException(Exception):
 
 
 def detect_lang_for_text(text: str) -> str:
-    return detect(text)
+    try:
+        return detect(text)
+    except LangDetectException as e:
+        raise e
 
 
 def get_text(element, words) -> None:
@@ -158,11 +161,12 @@ def detect_lang_pdf_2_txt(
         words: list[str] = []
         get_text(container, words)
 
-        print(words)
-        print(i)
         if words:
-            lang = detect_lang_for_text(" ".join(words))
-            lang_list.append(lang)
+            try:
+                lang = detect_lang_for_text(" ".join(words))
+                lang_list.append(lang)
+            except LangDetectException:
+                continue
 
     # Count the frequency of each string
     string_counts = Counter(lang_list)
@@ -170,12 +174,18 @@ def detect_lang_pdf_2_txt(
     # Get the string(s) that occur the most
     most_common_lang = string_counts.most_common(1)
 
-    print("Detected language: " + most_common_lang[0][0])
+    if most_common_lang:
+        print("Detected language: " + most_common_lang[0][0])
 
     if not os.path.exists(os.path.dirname(out_path)):
         os.makedirs(os.path.dirname(out_path))
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(most_common_lang[0][0])
+        if most_common_lang:
+            f.write(most_common_lang[0][0])
+        else:
+            print("No language detected")
+            f.write("")
+            sys.exit(1)
 
 
 def detect_lang_txt_2_txt(input: str, output: str) -> None:
@@ -183,13 +193,12 @@ def detect_lang_txt_2_txt(input: str, output: str) -> None:
         with open(input, "r", encoding="utf-8") as infile:
             text = infile.read()
 
-        if not text:
-            detected_language = detect_lang_for_text(text)
+        detected_language = detect_lang_for_text(text)
 
-            print("Detected language: " + detected_language)
+        print("Detected language: " + detected_language)
 
-            with open(output, "w", encoding="utf-8") as outfile:
-                outfile.write(detected_language)
+        with open(output, "w", encoding="utf-8") as outfile:
+            outfile.write(detected_language)
 
     except Exception as e:
         print(f"An error occurred: {str(e)}", file=sys.stderr)
