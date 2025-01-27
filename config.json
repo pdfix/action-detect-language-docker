@@ -1,23 +1,12 @@
 {
   "actions": [
     {
-      "name": "Language Detection",
-      "desc": "A Docker image that automatically detects the language of a PDF file",
-      "version": "1.0.0",
+        "name": "Detect and Set PDF Language",
+        "desc": "Automatically detect a PDF's language and update the document metadata",
+        "version": "1.0.0",
       "icon": "language",
       "category": "Metadata",
-      "configurations": [
-        {
-          "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\" lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
-          "name": "Detect Language and Save to PDF",
-          "desc": "Detect Language and Save to PDF"
-        },
-        {
-          "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\"  lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
-          "name": "Detect Language and Save to TXT",
-          "desc": "Detect Language and Save to TXT"
-        }
-      ],
+      "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\" lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
       "args": [
         {
           "name": "input_pdf",
@@ -34,16 +23,34 @@
           "type": "file_path",
           "ext": "pdf",
           "value": ""
-        },
-        {
-          "name": "output_txt",
-          "desc": "Output text file with the result of detection",
-          "flags": 4,
-          "type": "file_path",
-          "ext": "txt",
-          "value": ""
         }
       ]
-    }
+    },
+    {
+        "name": "Detect PDF Language and Save to TXT",
+        "desc": "Automatically detect the language of a PDF document and saves the detected language code into a TXT file",
+        "version": "1.0.0",
+        "icon": "language",
+        "category": "Metadata",
+        "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\"  lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
+        "args": [
+          {
+            "name": "input_pdf",
+            "desc": "Input PDF file",
+            "flags": 2,
+            "type": "file_path",
+            "ext": "pdf",
+            "value": ""
+          },
+          {
+            "name": "output_txt",
+            "desc": "Output text file with the result of detection",
+            "flags": 4,
+            "type": "file_path",
+            "ext": "txt",
+            "value": ""
+          }
+        ]
+      }    
   ]
 }
