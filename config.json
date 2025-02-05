@@ -1,8 +1,8 @@
 {
     "actions": [
         {
-            "name": "Detect and Set PDF Language",
-            "desc": "Automatically detect a PDF's language and update the document metadata",
+            "name": "Detect Language",
+            "desc": "Automatically detects the language of a PDF and updates its document metadata",
             "version": "1.0.0",
             "icon": "language",
             "category": "Metadata",
@@ -27,8 +27,8 @@
             ]
         },
         {
-            "name": "Detect PDF Language and Save to TXT",
-            "desc": "Automatically detect the language of a PDF document and saves the detected language code into a TXT file",
+            "name": "Detect Language to TXT",
+            "desc": "Automatically detects the language of a PDF and saves the detected language code in a TXT file",
             "version": "1.0.0",
             "icon": "language",
             "category": "Metadata",
