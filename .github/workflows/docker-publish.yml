@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
     tags:
       - 'v*.*.*'  # Matches version tags like v1.0.0
   workflow_dispatch:
@@ -75,6 +76,7 @@ jobs:
       #     subject-name: index.docker.io/${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.tag }}
       #     subject-digest: ${{ steps.push.outputs.digest }}
       #     push-to-registry: true
+
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
         with:
@@ -84,5 +86,5 @@ jobs:
 
       - name: Upload to FTP
         run: |
-          curl -T config.json ftp.pdfix.net/update-service/v1/${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_HUB_REPOSITORY }}/config.json --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs
-  
+          curl -T config.json ftp.pdfix.net/update-service/v1/actions/${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_HUB_REPOSITORY }}/config.json --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" --ftp-create-dirs
+
