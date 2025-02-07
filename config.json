@@ -1,9 +1,10 @@
 {
+    "version": "v0.0.0",
     "actions": [
         {
             "name": "Detect Language",
             "desc": "Automatically detects the language of a PDF and updates its metadata",
-            "version": "1.0.0",
+            "version": "v0.0.0",
             "icon": "language",
             "category": "Metadata",
             "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\" lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
@@ -29,7 +30,7 @@
         {
             "name": "Detect Language to TXT",
             "desc": "Automatically detects the language of a PDF and saves the detected language code to a TXT file",
-            "version": "1.0.0",
+            "version": "v0.0.0",
             "icon": "language_txt",
             "category": "Metadata",
             "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\"  lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
