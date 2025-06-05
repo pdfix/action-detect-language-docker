@@ -1,7 +1,7 @@
 # Use the official Debian slim image as a base
 FROM debian:stable-slim
 
-# Install dependencies
+# Update system and Install python3
 RUN apt-get update && \
     apt-get install -y \
     python3 \
@@ -12,18 +12,18 @@ RUN apt-get update && \
 
 WORKDIR /usr/lang-detect/
 
-ENV VIRTUAL_ENV=venv
 
 # Create a virtual environment and install dependencies
+ENV VIRTUAL_ENV=venv
 RUN python3 -m venv venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Copy and install dependencies into the container
 COPY requirements.txt /usr/lang-detect/
-RUN pip install --no-cache-dir -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy sources and resources
+
+# Copy config and source codes
 COPY config.json /usr/lang-detect/
 COPY src/ /usr/lang-detect/src/
+
 
 ENTRYPOINT ["/usr/lang-detect/venv/bin/python3", "/usr/lang-detect/src/main.py"]
