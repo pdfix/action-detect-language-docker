@@ -8,8 +8,7 @@ A Docker image that automatically detects the language of a PDF file. It uses a 
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
   - [Run using Command Line Interface](#run-using-command-line-interface)
-  - [Run OCR using REST API](#run-ocr-using-rest-api)
-    - [Exporting Configuration for Integration](#exporting-configuration-for-integration)
+  - [Exporting Configuration for Integration](#exporting-configuration-for-integration)
   - [License](#license)
   - [Help \& Support](#help--support)
 
@@ -34,6 +33,7 @@ With PDFix License add these arguments.
 ```bash
 --name ${LICENSE_NAME} --key ${LICENSE_KEY}
 ```
+Contact support for more information.
 
 The first run will pull the docker image, which may take some time. Make your own image for more advanced use.
 
@@ -43,10 +43,7 @@ For more detailed information about the available command-line arguments, you ca
 docker run --rm pdfix/detect-language:latest --help
 ```
 
-## Run OCR using REST API
-Comming soon. Please contact us.
-
-### Exporting Configuration for Integration
+## Exporting Configuration for Integration
 To export the configuration JSON file, use the following command:
 ```bash
 docker run -v $(pwd):/data -w /data --rm pdfix/detect-language:latest config -o config.json
