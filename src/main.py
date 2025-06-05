@@ -96,13 +96,13 @@ def main() -> None:  # noqa: D103
     config_subparser.set_defaults(func=run_config_subcommand)
 
     # Language detect subparser
-    language_detect_help = "Detect language of a PDF or text provided in the input."
-    language_detect_help += " The detected language is printed as an output."
-    language_detect_help += " Allowed combinations are:\n"
-    language_detect_help += "PDF -> PDF\n"
-    language_detect_help += "PDF -> TXT\n"
-    language_detect_help += "TXT -> TXT\n"
-    language_detect_help += "input argument -> TXT\n"
+    language_detect_help = "Detect language of a PDF or text provided in the input. "
+    language_detect_help += "The detected language is printed as an output. "
+    language_detect_help += "Allowed combinations are: "
+    language_detect_help += "1. PDF -> PDF. "
+    language_detect_help += "2. PDF -> TXT. "
+    language_detect_help += "3. TXT -> TXT. "
+    language_detect_help += "4. input argument -> TXT."
     lang_detect_subparser = subparsers.add_parser("lang-detect", help=language_detect_help)
     set_arguments(
         lang_detect_subparser,
