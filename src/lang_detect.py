@@ -42,6 +42,8 @@ class DetectLanguage:
             raise Exception("Pdfix Initialization fail")
 
         # Choose input type and read words into pages
+        pages: list[list[str]] = []
+
         if self.input.lower().endswith(".pdf"):
             pages = self._extract_text_from_pdf()
         elif self.input.lower().endswith(".txt"):
@@ -52,7 +54,7 @@ class DetectLanguage:
             print("Invalid input combination. See --help for more information.", file=sys.stderr)
             sys.exit(1)
 
-        if len(pages) == 0 or len(pages[0]):
+        if len(pages) == 0 or len(pages[0]) == 0:
             print("No words were extracted from input", file=sys.stderr)
             sys.exit(1)
 
@@ -94,9 +96,9 @@ class DetectLanguage:
         if doc is None:
             raise PdfixException(self.pdfix, "Unable to open pdf")
 
-        try:
-            result: list[list[str]] = []
+        result: list[list[str]] = []
 
+        try:
             for page_index in range(0, doc.GetNumPages()):
                 # Acquire page
                 page: PdfPage = doc.AcquirePage(page_index)
@@ -118,10 +120,9 @@ class DetectLanguage:
                             raise PdfixException(self.pdfix, "Get page element failure")
 
                         # Extract max 100 words from page
-                        self.words: list[str] = []
-                        self._extract_words(container)
-                        if len(self.words) > 0:
-                            result.append(self.words)
+                        words = self._extract_words(container)
+                        if len(words) > 0:
+                            result.append(words[:100])
                     except Exception:
                         raise
                     finally:
@@ -138,33 +139,34 @@ class DetectLanguage:
 
         return result
 
-    def _extract_words(self, element: PdeElement) -> None:
+    def _extract_words(self, element: PdeElement) -> list[str]:
         """
         Extract words from text elements and crawl tree recursively.
 
         Args:
             element (PdeElement): Element and its children to check.
-        """
-        # 100 words is enough for language detection stop here
-        if len(self.words) > 100:
-            return
 
+        Returns:
+            List of words under element or its children.
+        """
         elem_type = element.GetType()
+
+        words: list[str] = []
 
         if kPdeText == elem_type:
             text_elem = PdeText(element.obj)
             text = text_elem.GetText()
             for word in text.split():
-                self.words.append(word)
+                words.append(word)
         else:
             count = element.GetNumChildren()
-            if count == 0:
-                return
+            if count > 0:
+                for child_index in range(0, count):
+                    child = element.GetChild(child_index)
+                    if child is not None:
+                        words.extend(self._extract_words(child))
 
-            for child_index in range(0, count):
-                child = element.GetChild(child_index)
-                if child is not None:
-                    self._extract_words(child)
+        return words
 
     def _extract_text_from_txt(self) -> list[list[str]]:
         """
