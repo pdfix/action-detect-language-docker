@@ -1,129 +1,133 @@
 import argparse
 import os
-import shutil
 import sys
+import traceback
 from pathlib import Path
 
-from lang_detect import (
-    detect_lang_pdf_2_pdf,
-    detect_lang_pdf_2_txt,
-    detect_lang_str_2_txt,
-    detect_lang_txt_2_txt,
-)
+from lang_detect import DetectLanguage
 
 
-def get_config(path: str) -> None:
-    if path is None:
-        with open(
-            os.path.join(Path(__file__).parent.absolute(), "../config.json"),
-            "r",
-            encoding="utf-8",
-        ) as f:
-            print(f.read())
-    else:
-        src = os.path.join(Path(__file__).parent.absolute(), "../config.json")
-        dst = path
-        shutil.copyfile(src, dst)
+def set_arguments(
+    parser: argparse.ArgumentParser,
+    names: list,
+    required_output: bool = True,
+    output_help: str = "",
+) -> None:
+    """
+    Set arguments for the parser based on the provided names and options.
+
+    Args:
+        parser (argparse.ArgumentParser): The argument parser to set arguments for.
+        names (list): List of argument names to set.
+        required_output (bool): Whether the output argument is required. Defaults to True.
+        output_help (str): Help for argument output. Defaults to "".
+    """
+    for name in names:
+        match name:
+            case "input":
+                parser.add_argument(
+                    "--input", "-i", type=str, required=True, help="The input PDF or TXT file or text to detect."
+                )
+            case "key":
+                parser.add_argument("--key", type=str, help="PDFix license key.")
+            case "name":
+                parser.add_argument("--name", type=str, help="PDFix license name.")
+            case "output":
+                parser.add_argument("--output", "-o", type=str, required=required_output, help=output_help)
+
+
+def run_config_subcommand(args) -> None:
+    get_pdfix_config(args.output)
+
+
+def get_pdfix_config(path: str) -> None:
+    """
+    If Path is not provided, output content of config.
+    If Path is provided, copy config to destination path.
+
+    Args:
+        path (str): Destination path for config.json file
+    """
+    config_path = os.path.join(Path(__file__).parent.absolute(), "../config.json")
+
+    with open(config_path, "r", encoding="utf-8") as file:
+        if path is None:
+            print(file.read())
+        else:
+            with open(path, "w") as out:
+                out.write(file.read())
+
+
+def run_lang_detect_subcommand(args) -> None:
+    detect_lang(args.input, args.output, args.name, args.key)
+
+
+def detect_lang(input: str, output_path: str, license_name: str, license_key: str) -> None:
+    """
+    Detects language from input and writes it to output.
+    If output is txt it writes language string into it.
+    If output is pdf it sets language for it.
+
+    Args:
+        input (string): Path or text.
+        output_path (string): Path.
+        license_name (string): Pdfix sdk license name (e-mail).
+        license_key (string): Pdfix sdk license key.
+    """
+    detect_language = DetectLanguage(license_name, license_key, input, output_path)
+    detect_language.detect()
 
 
 def main() -> None:  # noqa: D103
     parser = argparse.ArgumentParser(
         description="Identify a language from PDF or text file.",
     )
-    parser.add_argument("--name", type=str, default="", help="license name")
-    parser.add_argument("--key", type=str, default="", help="license key")
 
     subparsers = parser.add_subparsers(dest="subparser")
 
-    # get config subparser
-    pars_config = subparsers.add_parser(
-        "config",
-        help="Extract config file for integration",
+    # Config subparser
+    config_subparser = subparsers.add_parser("config", help="Extract config file for integration")
+    set_arguments(
+        config_subparser,
+        ["output"],
+        False,
+        "Output to save the config JSON file. Application output is used if not provided.",
     )
-    pars_config.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        help="Output to save the config JSON file. Application output\
-              is used if not provided",
-    )
+    config_subparser.set_defaults(func=run_config_subcommand)
 
-    # lang-detect subparser
-    lang_detect = subparsers.add_parser(
-        "lang-detect",
-        help="Detect language of a PDF or text provided in the input.\
-              The detected language is printed as an output.",
+    # Language detect subparser
+    language_detect_help = "Detect language of a PDF or text provided in the input."
+    language_detect_help += " The detected language is printed as an output."
+    language_detect_help += " Allowed combinations are:\n"
+    language_detect_help += "PDF -> PDF\n"
+    language_detect_help += "PDF -> TXT\n"
+    language_detect_help += "TXT -> TXT\n"
+    language_detect_help += "input argument -> TXT\n"
+    lang_detect_subparser = subparsers.add_parser("lang-detect", help=language_detect_help)
+    set_arguments(
+        lang_detect_subparser,
+        ["name", "key", "input", "output"],
+        True,
+        "Output to save a PDF documet or TXT file according to input.",
     )
-    lang_detect.add_argument(
-        "-i",
-        "--input",
-        type=str,
-        help="The input PDF or text to detect",
-        required=True,
-    )
-    lang_detect.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        help="Output to save a PDF documet if input is a PDF document.",
-    )
-    # args = parser.parse_args()
+    lang_detect_subparser.set_defaults(func=run_lang_detect_subcommand)
+
+    # Parse arguments
     try:
         args = parser.parse_args()
     except SystemExit as e:
-        if e.code == 0:  # This happens when --help is used, exit gracefully
+        if e.code == 0:
+            # This happens when --help is used, exit gracefully
             sys.exit(0)
-        print("Failed to parse arguments. Please check the usage and try again.")
+        print("Failed to parse arguments. Please check the usage and try again.", file=sys.stderr)
         sys.exit(1)
 
-    if args.subparser == "config":
-        get_config(args.output)
-        sys.exit(0)
-    elif args.subparser == "lang-detect":
-        if not args.input or not args.output:
-            parser.error(
-                "The following arguments are required: -i/--input, -o/--output",
-            )
-
-        input_file = args.input
-        output_file = args.output
-
-        if input_file.lower().endswith(".pdf") and output_file.lower().endswith(".pdf"):
-            if not os.path.isfile(input_file):
-                sys.exit(f"Error: The input file '{input_file}' does not exist.")
-                return
-            try:
-                detect_lang_pdf_2_pdf(input_file, output_file, args.name, args.key)
-            except Exception as e:
-                sys.exit("Failed to run language detection: {}".format(e))
-
-        elif input_file.lower().endswith(".pdf") and output_file.lower().endswith(
-            ".txt",
-        ):
-            if not os.path.isfile(input_file):
-                sys.exit(f"Error: The input file '{input_file}' does not exist.")
-                return
-            detect_lang_pdf_2_txt(input_file, output_file, args.name, args.key)
-        elif input_file.lower().endswith(".txt") and output_file.lower().endswith(
-            ".txt",
-        ):
-            if not os.path.isfile(input_file):
-                sys.exit(f"Error: The input file '{input_file}' does not exist.")
-                return
-            detect_lang_txt_2_txt(input_file, output_file)
-        elif output_file.lower().endswith(".txt"):
-            detect_lang_str_2_txt(input_file, output_file)
-        else:
-            print(
-                "Invalid input combination. See --help for more information.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-    else:
-        print(
-            "Invalid command. See --help for more information.",
-            file=sys.stderr,
-        )
+    # Run subcommand
+    try:
+        args.func(args)
+    except Exception as e:
+        print(traceback.format_exc(), file=sys.stderr)
+        print(f"Failed to run the program: {e}", file=sys.stderr)
         sys.exit(1)
 
 
