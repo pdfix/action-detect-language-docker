@@ -103,26 +103,28 @@ class DetectLanguage:
                 # Acquire page
                 page: PdfPage = doc.AcquirePage(page_index)
                 if page is None:
-                    raise PdfixException(self.pdfix, "Acquire Page fail")
+                    raise PdfixException(self.pdfix, "Failed to acquire Page")
 
                 try:
                     # Get the page map of the current page
                     page_map: PdePageMap = page.AcquirePageMap()
                     if page_map is None:
-                        raise PdfixException(self.pdfix, "Acquire PageMap fail")
+                        raise PdfixException(self.pdfix, "Failed to acquire PageMap")
+
                     try:
                         if not page_map.CreateElements():
-                            raise PdfixException(self.pdfix, "Acquire PageMap fail")
+                            raise PdfixException(self.pdfix, "Failed to create element")
 
                         # Get page container
                         container: PdeElement = page_map.GetElement()
                         if container is None:
-                            raise PdfixException(self.pdfix, "Get page element failure")
+                            raise PdfixException(self.pdfix, "Failed to get page element")
 
                         # Extract max 100 words from page
                         words = self._extract_words(container)
                         if len(words) > 0:
                             result.append(words[:100])
+
                     except Exception:
                         raise
                     finally:
@@ -223,7 +225,7 @@ class DetectLanguage:
 
             with tempfile.NamedTemporaryFile() as temp_file:
                 if not doc.Save(temp_file.name, kSaveFull):
-                    raise PdfixException(self.pdfix, "Failed to save PDF")
+                    raise PdfixException(self.pdfix, "Unable to save PDF")
 
                 doc.Close()
 
