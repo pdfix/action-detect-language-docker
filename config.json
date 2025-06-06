@@ -4,7 +4,7 @@
     "actions": [
         {
             "title": "Detect Language",
-            "name": "pdfix-detect_language",
+            "name": "pdfix_detect_language",
             "desc": "Automatically detects the language of a PDF and updates its metadata",
             "version": "v0.0.0",
             "icon": "language",
@@ -31,7 +31,7 @@
         },
         {
             "title": "Detect Language to TXT",
-            "name": "pdfix-detect_language_to_txt",
+            "name": "pdfix_detect_language_to_txt",
             "desc": "Automatically detects the language of a PDF and saves the detected language code to a TXT file",
             "version": "v0.0.0",
             "icon": "language_txt",
