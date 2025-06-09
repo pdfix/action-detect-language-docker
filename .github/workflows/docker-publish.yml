@@ -2,9 +2,6 @@ name: Build and Publish Docker Image
 
 on:
   push:
-    # branches:
-    #   - main
-    #   - dev
     tags:
       - 'v*.*.*'  # Matches version tags like v1.0.0
   workflow_dispatch:
