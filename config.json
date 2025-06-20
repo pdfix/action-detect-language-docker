@@ -9,7 +9,7 @@
             "version": "v0.0.0",
             "icon": "language",
             "category": "Metadata",
-            "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\" lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
+            "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -36,7 +36,7 @@
             "version": "v0.0.0",
             "icon": "language_txt",
             "category": "Metadata",
-            "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest --name \"${license_name}\" --key \"${license_key}\" lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
+            "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
             "args": [
                 {
                     "name": "input_pdf",
