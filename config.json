@@ -5,10 +5,11 @@
         {
             "title": "Detect PDF Language (LangDetect)",
             "name": "pdfix_detect_pdf_language_langdetect",
-            "desc": "Automatically detects the language of a PDF and updates its metadata.",
+            "desc": "Automatically detects the language of a PDF and updates its metadata [Local]",
             "version": "v0.0.0",
             "icon": "language",
             "category": "Metadata",
+            "local": "True",
             "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
             "args": [
                 {
@@ -32,10 +33,11 @@
         {
             "title": "Detect PDF Language to Text (LangDetect)",
             "name": "pdfix_detect_pdf_language_to_text_langdetect",
-            "desc": "Automatically detects the language of a PDF and saves the detected language code to a TXT file.",
+            "desc": "Automatically detects the language of a PDF and saves the detected language code to a TXT file [Local]",
             "version": "v0.0.0",
             "icon": "language_txt",
             "category": "Metadata",
+            "local": "True",
             "program": "docker run --platform linux/amd64 -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
             "args": [
                 {
