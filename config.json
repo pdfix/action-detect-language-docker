@@ -31,7 +31,7 @@
             ]
         },
         {
-            "title": "Detect PDF Language to Text (LangDetect)",
+            "title": "Detect Language from PDF to Text (LangDetect)",
             "name": "pdfix_detect_pdf_language_to_text_langdetect",
             "desc": "Automatically detects the language of a PDF and saves the detected language code to a TXT file [Local]",
             "version": "v0.0.0",
@@ -59,11 +59,11 @@
             ]
         },
         {
-            "title": "Detect TXT Language to Text (LangDetect)",
+            "title": "Detect Language from Text to Text (LangDetect)",
             "name": "pdfix_detect_pdf_language_to_text_langdetect",
-            "desc": "Automatically detects the language of a TXT and saves the detected language code to a TXT file [Local]",
+            "desc": "Automatically detects the language from text and saves the detected language code to a TXT file [Local]",
             "version": "v0.0.0",
-            "icon": "language_txt",
+            "icon": "language_txt_txt",
             "category": "Metadata",
             "subtype": "detect_language_txt_to_txt",
             "local": "True",
