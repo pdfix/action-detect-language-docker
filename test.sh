@@ -63,7 +63,7 @@ else
     EXIT_STATUS=1
 fi
 
-info "Test #04: Run language detection to txt"
+info "Test #04: Run language detection pdf to txt"
 docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/air_quality.pdf -o $TEMPORARY_DIRECTORY/air_quality.txt > /dev/null
 if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/air_quality.txt" ]; then
     success "passed"
@@ -72,9 +72,18 @@ else
     EXIT_STATUS=1
 fi
 
+info "Test #05: Run language detection txt to txt"
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/language_identification_wikipedia.txt -o $TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt > /dev/null
+if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt" ]; then
+    success "passed"
+else
+    error "language detection to txt failed on example/language_identification_wikipedia.txt"
+    EXIT_STATUS=1
+fi
+
 # Move these tests to functional tests
 
-# info "Test #05: Run lang-detect on pdf with empty page"
+# info "Test #06: Run lang-detect on pdf with empty page"
 # docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/empty_page.pdf -o $TEMPORARY_DIRECTORY/empty_page.txt > /dev/null
 # if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/empty_page.txt" ]; then
 #     success "passed"
@@ -83,7 +92,7 @@ fi
 #     EXIT_STATUS=1
 # fi
 
-# info "Test #06: Run lang-detect on pdf with numbers"
+# info "Test #07: Run lang-detect on pdf with numbers"
 # docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/pdfix_6_0_0_0053.pdf -o $TEMPORARY_DIRECTORY/num.txt > /dev/null
 # if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/empty_page.txt" ]; then
 #     success "passed"
@@ -96,6 +105,7 @@ info "Cleaning up temporary files from tests"
 rm -f $TEMPORARY_DIRECTORY/config.json
 rm -f $TEMPORARY_DIRECTORY/air_quality.pdf
 rm -f $TEMPORARY_DIRECTORY/air_quality.txt
+rm -f $TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt
 rmdir $(pwd)/$TEMPORARY_DIRECTORY
 
 info "Removing testing docker image"

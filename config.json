@@ -57,6 +57,35 @@
                     "value": ""
                 }
             ]
+        },
+        {
+            "title": "Detect TXT Language to Text (LangDetect)",
+            "name": "pdfix_detect_pdf_language_to_text_langdetect",
+            "desc": "Automatically detects the language of a TXT and saves the detected language code to a TXT file [Local]",
+            "version": "v0.0.0",
+            "icon": "language_txt",
+            "category": "Metadata",
+            "subtype": "detect_language_txt_to_txt",
+            "local": "True",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_txt}\" -o \"/data/${output_txt}\"",
+            "args": [
+                {
+                    "name": "input_txt",
+                    "desc": "Input text file",
+                    "flags": 2,
+                    "type": "file_path",
+                    "ext": "txt",
+                    "value": ""
+                },
+                {
+                    "name": "output_txt",
+                    "desc": "Output text file containing the detected language code",
+                    "flags": 4,
+                    "type": "file_path",
+                    "ext": "txt",
+                    "value": ""
+                }
+            ]
         }
     ]
 }
