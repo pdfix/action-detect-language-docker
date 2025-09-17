@@ -38,7 +38,7 @@
             "icon": "language_txt",
             "category": "Metadata",
             "local": "True",
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -67,7 +67,7 @@
             "category": "Metadata",
             "subtype": "detect_language_txt_to_txt",
             "local": "True",
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_txt}\" -o \"/data/${output_txt}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect -i \"/data/${input_txt}\" -o \"/data/${output_txt}\"",
             "args": [
                 {
                     "name": "input_txt",
