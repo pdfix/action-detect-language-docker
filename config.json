@@ -3,7 +3,7 @@
     "version": "v0.0.0",
     "actions": [
         {
-            "title": "Detect PDF Language (LangDetect)",
+            "title": "Set Document Language (LangDetect)",
             "name": "pdfix_detect_pdf_language_langdetect",
             "desc": "Automatically detects the language of a PDF and updates its metadata [Local]",
             "version": "v0.0.0",
@@ -31,7 +31,7 @@
             ]
         },
         {
-            "title": "Detect Language from PDF to Text (LangDetect)",
+            "title": "Export Language from PDF (LangDetect)",
             "name": "pdfix_detect_pdf_language_to_text_langdetect",
             "desc": "Automatically detects the language of a PDF and saves the detected language code to a TXT file [Local]",
             "version": "v0.0.0",
@@ -59,7 +59,7 @@
             ]
         },
         {
-            "title": "Detect Language from Text to Text (LangDetect)",
+            "title": "Set Language (LangDetect)",
             "name": "pdfix_detect_pdf_language_to_text_langdetect",
             "desc": "Automatically detects the language from text and saves the detected language code to a TXT file [Local]",
             "version": "v0.0.0",
