@@ -3,7 +3,7 @@
     "version": "v0.0.0",
     "actions": [
         {
-            "title": "Set Document Language (LangDetect)",
+            "title": "Set Document Language  (LangDetect)",
             "name": "pdfix_detect_pdf_language_langdetect",
             "desc": "Automatically detects the language of a PDF and updates its metadata [Local]",
             "version": "v0.0.0",
