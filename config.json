@@ -60,7 +60,7 @@
         },
         {
             "title": "Set Language (LangDetect)",
-            "name": "pdfix_detect_pdf_language_to_text_langdetect",
+            "name": "pdfix_detect_txt_language_to_text_langdetect",
             "desc": "Automatically detects the language from text and saves the detected language code to a TXT file [Local]",
             "version": "v0.0.0",
             "icon": "language_txt_txt",
