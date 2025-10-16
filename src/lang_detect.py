@@ -2,11 +2,21 @@ import shutil
 import sys
 import tempfile
 from collections import Counter
+from typing import Optional
 
 from langdetect import LangDetectException, detect
 from pdfixsdk import GetPdfix, PdeElement, PdePageMap, PdeText, PdfPage, kPdeText, kSaveFull
 
-from exceptions import PdfixException
+from exceptions import (
+    ArgumentException,
+    FailToDetectLangException,
+    FailToExtractWordsException,
+    PdfixFailedToOpenException,
+    PdfixFailedToReadException,
+    PdfixFailedToSaveException,
+    PdfixFailedToSaveLanguageException,
+    PdfixInitializeException,
+)
 from utils_sdk import authorize_sdk
 
 
@@ -39,7 +49,7 @@ class DetectLanguage:
         """
         self.pdfix = GetPdfix()
         if self.pdfix is None:
-            raise Exception("Pdfix Initialization fail")
+            raise PdfixInitializeException()
 
         # Choose input type and read words into pages
         pages: list[list[str]] = []
@@ -51,12 +61,11 @@ class DetectLanguage:
         elif self.output_path.lower().endswith(".txt"):
             pages = self._extract_text_from_input()
         else:
-            print("Invalid input combination. See --help for more information.", file=sys.stderr)
-            sys.exit(1)
+            print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
+            raise ArgumentException()
 
         if len(pages) == 0 or len(pages[0]) == 0:
-            print("No words were extracted from input", file=sys.stderr)
-            sys.exit(1)
+            raise FailToExtractWordsException()
 
         # Run detect on each page
         languages: list[str] = []
@@ -80,8 +89,8 @@ class DetectLanguage:
         elif self.output_path.lower().endswith(".txt"):
             self._write_to_txt(content_to_write)
         else:
-            print("Invalid input combination. See --help for more information.", file=sys.stderr)
-            sys.exit(1)
+            print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
+            raise ArgumentException()
 
     def _extract_text_from_pdf(self) -> list[list[str]]:
         """
@@ -94,7 +103,7 @@ class DetectLanguage:
 
         doc = self.pdfix.OpenDoc(self.input, "")
         if doc is None:
-            raise PdfixException(self.pdfix, "Unable to open pdf")
+            raise PdfixFailedToOpenException(self.pdfix, self.input)
 
         result: list[list[str]] = []
 
@@ -103,22 +112,24 @@ class DetectLanguage:
                 # Acquire page
                 page: PdfPage = doc.AcquirePage(page_index)
                 if page is None:
-                    raise PdfixException(self.pdfix, "Failed to acquire Page")
+                    raise PdfixFailedToReadException(self.pdfix, "Failed to acquire Page")
+
+                exception_for_later: Optional[Exception] = None
 
                 try:
                     # Get the page map of the current page
                     page_map: PdePageMap = page.AcquirePageMap()
                     if page_map is None:
-                        raise PdfixException(self.pdfix, "Failed to acquire PageMap")
+                        raise PdfixFailedToReadException(self.pdfix, "Failed to acquire PageMap")
 
                     try:
                         if not page_map.CreateElements():
-                            raise PdfixException(self.pdfix, "Failed to create element")
+                            raise PdfixFailedToReadException(self.pdfix, "Failed to create element")
 
                         # Get page container
                         container: PdeElement = page_map.GetElement()
                         if container is None:
-                            raise PdfixException(self.pdfix, "Failed to get page element")
+                            raise PdfixFailedToReadException(self.pdfix, "Failed to get page element")
 
                         # Extract max 100 words from page
                         words = self._extract_words(container)
@@ -129,11 +140,15 @@ class DetectLanguage:
                         raise
                     finally:
                         page_map.Release
-                except Exception:
+                except Exception as e:
+                    exception_for_later = e
                     # Give chance to other pages (no exception propagation)
                     print(f"Problem with page {page_index + 1}", file=sys.stderr)
                 finally:
                     page.Release()
+
+                if len(result) == 0 and exception_for_later:
+                    raise exception_for_later
         except Exception:
             raise
         finally:
@@ -218,22 +233,21 @@ class DetectLanguage:
         if content_to_write:
             doc = self.pdfix.OpenDoc(self.input, "")
             if doc is None:
-                raise PdfixException(self.pdfix, "Unable to open pdf")
+                raise PdfixFailedToSaveLanguageException(self.pdfix, "Unable to open pdf")
 
             if not doc.SetLang(content_to_write):
-                raise PdfixException(self.pdfix, "Failed to set language")
+                raise PdfixFailedToSaveLanguageException(self.pdfix)
 
             with tempfile.NamedTemporaryFile() as temp_file:
                 if not doc.Save(temp_file.name, kSaveFull):
-                    raise PdfixException(self.pdfix, "Unable to save PDF")
+                    raise PdfixFailedToSaveException(self.pdfix, temp_file.name)
 
                 doc.Close()
 
                 # Copy temp file to output path
                 shutil.copyfile(temp_file.name, self.output_path)
         else:
-            print("No language was detected, not setting it to PDF.", file=sys.stderr)
-            sys.exit(1)
+            raise FailToDetectLangException()
 
     def _write_to_txt(self, content_to_write: str) -> None:
         """

@@ -1,6 +1,6 @@
 from pdfixsdk import Pdfix
 
-from exceptions import PdfixException
+from exceptions import PdfixActivationException, PdfixAuthorizationException
 
 
 def authorize_sdk(pdfix: Pdfix, license_name: str, license_key: str) -> None:
@@ -16,9 +16,9 @@ def authorize_sdk(pdfix: Pdfix, license_name: str, license_key: str) -> None:
     if license_name and license_key:
         authorization = pdfix.GetAccountAuthorization()
         if not authorization.Authorize(license_name, license_key):
-            raise PdfixException(pdfix, "Failed to authorize acount")
+            raise PdfixAuthorizationException(pdfix)
     elif license_key:
         if not pdfix.GetStandarsAuthorization().Activate(license_key):
-            raise PdfixException(pdfix, "Failed to activate acount")
+            raise PdfixActivationException(pdfix)
     else:
         print("No license name or key provided. Using PDFix SDK trial")

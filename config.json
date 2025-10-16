@@ -28,7 +28,19 @@
                     "ext": "pdf",
                     "value": ""
                 }
-            ]
+            ],
+            "errors": {
+                "10": "Failed to parse arguments. Please check the usage and try again.",
+                "20": "Failed to initialize PDFix SDK.",
+                "21": "Failed to activate PDFix SDK acount.",
+                "22": "Failed to authorize PDFix SDK acount.",
+                "23": "Failed to read PDF document.",
+                "24": "Failed to open PDF document.",
+                "25": "Failed to save PDF document.",
+                "26": "Failed to set language to PDF document.",
+                "30": "No words were extracted from input.",
+                "31": "No words were extracted from input."
+            }
         },
         {
             "title": "Export Language from PDF (LangDetect)",
@@ -56,7 +68,19 @@
                     "ext": "txt",
                     "value": ""
                 }
-            ]
+            ],
+            "errors": {
+                "10": "Failed to parse arguments. Please check the usage and try again.",
+                "20": "Failed to initialize PDFix SDK.",
+                "21": "Failed to activate PDFix SDK acount.",
+                "22": "Failed to authorize PDFix SDK acount.",
+                "23": "Failed to read PDF document.",
+                "24": "Failed to open PDF document.",
+                "25": "Failed to save PDF document.",
+                "26": "Failed to set language to PDF document.",
+                "30": "No words were extracted from input.",
+                "31": "No words were extracted from input."
+            }
         },
         {
             "title": "Set Language (LangDetect)",
@@ -85,7 +109,19 @@
                     "ext": "txt",
                     "value": ""
                 }
-            ]
+            ],
+            "errors": {
+                "10": "Failed to parse arguments. Please check the usage and try again.",
+                "20": "Failed to initialize PDFix SDK.",
+                "21": "Failed to activate PDFix SDK acount.",
+                "22": "Failed to authorize PDFix SDK acount.",
+                "23": "Failed to read PDF document.",
+                "24": "Failed to open PDF document.",
+                "25": "Failed to save PDF document.",
+                "26": "Failed to set language to PDF document.",
+                "30": "No words were extracted from input.",
+                "31": "No words were extracted from input."
+            }
         }
     ]
 }
