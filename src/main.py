@@ -1,10 +1,10 @@
 import argparse
-import os
 import sys
 import threading
 import traceback
 from pathlib import Path
 
+from constants import CONFIG_FILE
 from exceptions import (
     EC_ARG_GENERAL,
     MESSAGE_ARG_GENERAL,
@@ -55,7 +55,7 @@ def get_pdfix_config(path: str) -> None:
     Args:
         path (str): Destination path for config.json file
     """
-    config_path = os.path.join(Path(__file__).parent.absolute(), "../config.json")
+    config_path: Path = Path(__file__).parent.parent.joinpath(CONFIG_FILE)
 
     with open(config_path, "r", encoding="utf-8") as file:
         if path is None:
