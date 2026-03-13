@@ -1,4 +1,5 @@
 langdetect==1.0.9
 pdfix-sdk==8.2.0
 requests==2.32.4
+tqdm==4.67.1
 types-requests==2.32.0.20250515

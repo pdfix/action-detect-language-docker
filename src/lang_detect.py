@@ -6,6 +6,7 @@ from typing import Optional
 
 from langdetect import LangDetectException, detect
 from pdfixsdk import GetPdfix, PdeElement, PdePageMap, PdeText, PdfPage, kPdeText, kSaveFull
+from tqdm import tqdm
 
 from exceptions import (
     ArgumentException,
@@ -47,54 +48,77 @@ class DetectLanguage:
         - txt 2 txt
         - input 2 txt
         """
-        self.pdfix = GetPdfix()
-        if self.pdfix is None:
-            raise PdfixInitializeException()
+        with tqdm(total=100) as progress_bar:
+            progress_bar.set_description("Loading words")
 
-        # Choose input type and read words into pages
-        pages: list[list[str]] = []
+            self.pdfix = GetPdfix()
+            if self.pdfix is None:
+                raise PdfixInitializeException()
 
-        if self.input.lower().endswith(".pdf"):
-            pages = self._extract_text_from_pdf()
-        elif self.input.lower().endswith(".txt"):
-            pages = self._extract_text_from_txt()
-        elif self.output_path.lower().endswith(".txt"):
-            pages = self._extract_text_from_input()
-        else:
-            print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
-            raise ArgumentException()
+            # Choose input type and read words into pages
+            pages: list[list[str]] = []
 
-        if len(pages) == 0 or len(pages[0]) == 0:
-            raise FailToExtractWordsException()
+            if self.input.lower().endswith(".pdf"):
+                pages = self._extract_text_from_pdf(progress_bar, 50)
+            elif self.input.lower().endswith(".txt"):
+                pages = self._extract_text_from_txt()
+            elif self.output_path.lower().endswith(".txt"):
+                pages = self._extract_text_from_input()
+            else:
+                print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
+                raise ArgumentException()
 
-        # Run detect on each page
-        languages: list[str] = []
-        for page in pages:
-            language = self._detect_language_for_page(page)
-            if language:
-                languages.append(language)
+            progress_bar.n = 50
+            progress_bar.set_description("Detecting language")
+            progress_bar.refresh()
 
-        # Get winning language
-        language_counter = Counter(languages)
-        most_used_langugage: list[tuple[str, int]] = language_counter.most_common(1)
+            if len(pages) == 0 or len(pages[0]) == 0:
+                raise FailToExtractWordsException()
 
-        if most_used_langugage:
-            print(f"Detected language: {most_used_langugage[0][0]}")
+            count: int = len(pages)
+            step: float = float(45) / count
 
-        content_to_write = most_used_langugage[0][0] if most_used_langugage else ""
+            # Run detect on each page
+            languages: list[str] = []
+            for page in pages:
+                language = self._detect_language_for_page(page)
+                if language:
+                    languages.append(language)
+                progress_bar.update(step)
 
-        # Choose output type and write result
-        if self.input.lower().endswith(".pdf") and self.output_path.lower().endswith(".pdf"):
-            self._write_to_pdf(content_to_write)
-        elif self.output_path.lower().endswith(".txt"):
-            self._write_to_txt(content_to_write)
-        else:
-            print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
-            raise ArgumentException()
+            progress_bar.n = 95
+            progress_bar.set_description("Saving")
+            progress_bar.refresh()
 
-    def _extract_text_from_pdf(self) -> list[list[str]]:
+            # Get winning language
+            language_counter = Counter(languages)
+            most_used_langugage: list[tuple[str, int]] = language_counter.most_common(1)
+
+            if most_used_langugage:
+                print(f"Detected language: {most_used_langugage[0][0]}")
+
+            content_to_write = most_used_langugage[0][0] if most_used_langugage else ""
+
+            # Choose output type and write result
+            if self.input.lower().endswith(".pdf") and self.output_path.lower().endswith(".pdf"):
+                self._write_to_pdf(content_to_write)
+            elif self.output_path.lower().endswith(".txt"):
+                self._write_to_txt(content_to_write)
+            else:
+                print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
+                raise ArgumentException()
+
+            progress_bar.n = 100
+            progress_bar.set_description("Done")
+            progress_bar.refresh()
+
+    def _extract_text_from_pdf(self, progress_bar: tqdm, total_units: float) -> list[list[str]]:
         """
         For given PDF document extract words from each page. Take max 100 words per page.
+
+        Args:
+            progress_bar (tqdm): Progress bar.
+            total_units (float): How much progress can be filled together.
 
         Returns:
             For each page list of words.
@@ -107,8 +131,11 @@ class DetectLanguage:
 
         result: list[list[str]] = []
 
+        page_count: int = doc.GetNumPages()
+        step: float = float(total_units) / page_count
+
         try:
-            for page_index in range(0, doc.GetNumPages()):
+            for page_index in range(0, page_count):
                 # Acquire page
                 page: PdfPage = doc.AcquirePage(page_index)
                 if page is None:
@@ -146,6 +173,8 @@ class DetectLanguage:
                     print(f"Problem with page {page_index + 1}", file=sys.stderr)
                 finally:
                     page.Release()
+
+                progress_bar.update(step)
 
                 if len(result) == 0 and exception_for_later:
                     raise exception_for_later
