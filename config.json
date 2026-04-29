@@ -45,7 +45,7 @@
                 "30": "No words were extracted from input.",
                 "31": "No words were extracted from input."
             },
-            "progress_regex": "^[^:]+:\\s+(?<progress>\\d{1,3})%"
+            "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
         {
             "title": "Export Language from PDF (LangDetect)",
@@ -90,7 +90,7 @@
                 "30": "No words were extracted from input.",
                 "31": "No words were extracted from input."
             },
-            "progress_regex": "^[^:]+:\\s+(?<progress>\\d{1,3})%"
+            "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
         {
             "title": "Set Language (LangDetect)",
@@ -136,7 +136,7 @@
                 "30": "No words were extracted from input.",
                 "31": "No words were extracted from input."
             },
-            "progress_regex": "^[^:]+:\\s+(?<progress>\\d{1,3})%"
+            "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         }
     ]
 }
