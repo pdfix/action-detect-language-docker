@@ -1,66 +1,70 @@
 # Language Detection
 
-A Docker image that automatically detects the language of a PDF file. It uses a configuration file for customizable options and can be run with various command-line arguments.
+A Docker image that detects the language of a PDF or text and writes the result to a TXT file or sets language on a PDF output.
 
 ## Table of Contents
 
 - [Language Detection](#language-detection)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-  - [Run using Command Line Interface](#run-using-command-line-interface)
-  - [Exporting Configuration for Integration](#exporting-configuration-for-integration)
-  - [License](#license)
-  - [Help \& Support](#help--support)
+  - [Getting started](#getting-started)
+  - [Usage](#usage)
+  - [Commands](#commands)
+  - [Arguments](#arguments)
+  - [Examples](#examples)
+  - [Help \& support](#help--support)
+  - [Licenses](#licenses)
 
-## Getting Started
+## Getting started
 
-To use this Docker application, you'll need to have Docker installed on your system. If Docker is not installed, please follow the instructions on the [official Docker website](https://docs.docker.com/get-docker/) to install it.
+You need Docker installed. The first run downloads the image and may take longer than later runs.
 
-## Run using Command Line Interface
+## Usage
 
-To run docker container as CLI you should share the folder with PDF to process using `-v` parameter. In this example it's current folder.
-
-```bash
-docker run -v $(pwd):/data -w /data --rm pdfix/detect-language:latest lang-detect -i input.pdf -o output.pdf
-```
-
-Just detect language and save language code to txt file
+Mount a folder into the container and run a subcommand:
 
 ```bash
-docker run -v $(pwd):/data -w /data --rm pdfix/detect-language:latest lang-detect -i input.pdf -o output.txt
+docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest <command> [options]
 ```
 
-With PDFix License add these arguments. 
+## Commands
+
+- `lang-detect`: Detect language from PDF, TXT, inline text, or text string → output PDF or TXT
+
+## Arguments
+
+### `lang-detect`
+
+Supported combinations: PDF → PDF, PDF → TXT, TXT → TXT, or free text → TXT.
+
+| Option | Required | Type / expected value | Description |
+|---|:---:|---|---|
+| `--input`, `-i` | yes | Path to an existing `.pdf` or `.txt` file, or a raw text string | Source text or file |
+| `--output`, `-o` | yes | Path for output `.pdf` or `.txt` (must match the chosen mode) | Output file |
+| `--name` | no | String (PDFix account license name); required for **PDF → PDF** | PDFix license name |
+| `--key` | no | String (PDFix account license key); required for **PDF → PDF** | PDFix license key |
+
+## Examples
+
+Detect language and write a language code to `output.txt`:
 
 ```bash
---name ${LICENSE_NAME} --key ${LICENSE_KEY}
+docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
+  lang-detect -i /data/input.pdf -o /data/output.txt
 ```
 
-Contact support for more information.
-
-The first run will pull the docker image, which may take some time. Make your own image for more advanced use.
-
-For more detailed information about the available command-line arguments, you can run the following command:
+Set detected language on an output PDF (requires PDFix license for PDF output):
 
 ```bash
-docker run --rm pdfix/detect-language:latest --help
+docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
+  lang-detect --name "${LICENSE_NAME}" --key "${LICENSE_KEY}" \
+  -i /data/input.pdf -o /data/output.pdf
 ```
 
-## Exporting Configuration for Integration
+## Help & support
 
-To export the configuration JSON file, use the following command:
+For PDFix SDK licensing or issues, contact `support@pdfix.net`.
 
-```bash
-docker run -v $(pwd):/data -w /data --rm pdfix/detect-language:latest config -o config.json
-```
+## Licenses
 
-## License
+- [PDFix Terms](https://pdfix.net/terms)
 
-- PDFix license https://pdfix.net/terms
-
-The trial version of the PDFix SDK may apply a watermark on the page and redact random parts of the PDF including the scanned image in the background. Contact us to get an evaluation or production license.
-
-## Help & Support
-
-To obtain a PDFix SDK license or report an issue please contact us at support@pdfix.net.
-For more information visit https://pdfix.net
+Trial versions of the PDFix SDK may apply watermarks and redact random content in the output PDF.
