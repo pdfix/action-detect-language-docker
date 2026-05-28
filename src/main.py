@@ -10,8 +10,11 @@ from exceptions import (
     MESSAGE_ARG_GENERAL,
     ExpectedException,
 )
+from extract_text import ExtractText
 from image_update import DockerImageContainerUpdateChecker
-from lang_detect import DetectLanguage
+from params_parser import ParamsParser
+from set_doc_metadata import SetDocMetadata
+from set_tag_language import SetTagLanguage
 
 
 def set_arguments(
@@ -41,6 +44,8 @@ def set_arguments(
                 parser.add_argument("--name", type=str, default="", nargs="?", help="PDFix license name.")
             case "output":
                 parser.add_argument("--output", "-o", type=str, required=required_output, help=output_help)
+            case "template":
+                parser.add_argument("--template", "-t", type=str, required=True, help="Template file path.")
 
 
 def run_config_subcommand(args) -> None:
@@ -65,24 +70,59 @@ def get_pdfix_config(path: str) -> None:
                 out.write(file.read())
 
 
-def run_lang_detect_subcommand(args) -> None:
-    detect_lang(args.input, args.output, args.name, args.key)
+def run_set_doc_metadata_subcommand(args) -> None:
+    set_doc_metadata(args.input, args.output, args.name, args.key)
 
 
-def detect_lang(input: str, output_path: str, license_name: str, license_key: str) -> None:
+def set_doc_metadata(input_path: str, output_path: str, license_name: str, license_key: str) -> None:
     """
-    Detects language from input and writes it to output.
-    If output is txt it writes language string into it.
-    If output is pdf it sets language for it.
+    Set language to document metadata on a PDF document.
 
     Args:
-        input (string): Path or text.
-        output_path (string): Path.
+        input_path (string): Path to the PDF document.
+        output_path (string): Path to save the PDF document.
         license_name (string): Pdfix sdk license name (e-mail).
         license_key (string): Pdfix sdk license key.
     """
-    detect_language = DetectLanguage(license_name, license_key, input, output_path)
-    detect_language.detect()
+    set_doc_metadata = SetDocMetadata(license_name, license_key, input_path, output_path)
+    set_doc_metadata.set_doc_metadata()
+
+
+def run_set_tag_language_subcommand(args) -> None:
+    set_tag_language(args.input, args.template, args.output, args.name, args.key)
+
+
+def set_tag_language(
+    input_path: str, template_path: str, output_path: str, license_name: str, license_key: str
+) -> None:
+    """
+    Set language to chosen tags in a PDF document.
+
+    Args:
+        input_path (string): Path to the PDF document.
+        template_path (string): Path to the template file.
+        output_path (string): Path to save the PDF document.
+        license_name (string): Pdfix sdk license name (e-mail).
+        license_key (string): Pdfix sdk license key.
+    """
+    set_tag_language = SetTagLanguage(license_name, license_key, template_path, input_path, output_path)
+    set_tag_language.set_tag_language()
+
+
+def run_extract_text_subcommand(args) -> None:
+    extract_text(args.input, args.output)
+
+
+def extract_text(input_path: str, output_path: str) -> None:
+    """
+    Extract text from a PDF document.
+
+    Args:
+        input_path (string): Path to the PDF document.
+        output_path (string): Path to save the extracted text.
+    """
+    extract_text = ExtractText(input_path, output_path)
+    extract_text.extract_text()
 
 
 def main() -> None:  # noqa: D103
@@ -102,22 +142,43 @@ def main() -> None:  # noqa: D103
     )
     config_subparser.set_defaults(func=run_config_subcommand)
 
-    # Language detect subparser
-    language_detect_help = "Detect language of a PDF or text provided in the input. "
-    language_detect_help += "The detected language is printed as an output. "
-    language_detect_help += "Allowed combinations are: "
-    language_detect_help += "1. PDF -> PDF. "
-    language_detect_help += "2. PDF -> TXT. "
-    language_detect_help += "3. TXT -> TXT. "
-    language_detect_help += "4. input argument -> TXT."
-    lang_detect_subparser = subparsers.add_parser("lang-detect", help=language_detect_help)
+    # PDF set doc metadata subparser
+    set_doc_metadata_subparser = subparsers.add_parser(
+        "set-doc-metadata", help="Set language to document metadata on a PDF document"
+    )
     set_arguments(
-        lang_detect_subparser,
+        set_doc_metadata_subparser,
         ["name", "key", "input", "output"],
         True,
-        "Output to save a PDF documet or TXT file according to input.",
+        "The PDF document.",
     )
-    lang_detect_subparser.set_defaults(func=run_lang_detect_subcommand)
+    set_doc_metadata_subparser.set_defaults(func=run_set_doc_metadata_subcommand)
+
+    # PDF set tag language subparser
+    # TODO parse params file argument, feed it to parser a provide path to internal template file as template json file
+    set_tag_language_subparser = subparsers.add_parser(
+        "set-tag-language", help="Set language to chosen tags in a PDF document"
+    )
+    set_arguments(
+        set_tag_language_subparser,
+        ["name", "key", "input", "template", "output"],
+        True,
+        "The PDF document.",
+    )
+    set_tag_language_subparser.set_defaults(func=run_set_tag_language_subcommand)
+    # TODO add clean up where needed
+
+    # PDF extract text subparser
+    extract_text_subparser = subparsers.add_parser(
+        "extract-text", help="Extract text from a PDF document or text file or input and write it to a text file."
+    )
+    set_arguments(
+        extract_text_subparser,
+        ["input", "output"],
+        True,
+        "The text file.",
+    )
+    extract_text_subparser.set_defaults(func=run_extract_text_subcommand)
 
     # Parse arguments
     try:

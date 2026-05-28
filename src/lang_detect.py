@@ -1,187 +1,84 @@
-import shutil
-import sys
-import tempfile
-from collections import Counter
+import logging
+from abc import ABC
 from typing import Optional
 
-from langdetect import LangDetectException, detect
-from pdfixsdk import GetPdfix, PdeElement, PdePageMap, PdeText, PdfPage, kPdeText, kSaveFull
-from tqdm import tqdm
+from pdfixsdk import PdeElement, PdePageMap, PdeText, PdfDoc, Pdfix, PdfPage, kPdeText
 
 from exceptions import (
-    ArgumentException,
-    FailToDetectLangException,
-    FailToExtractWordsException,
-    PdfixFailedToOpenException,
     PdfixFailedToReadException,
-    PdfixFailedToSaveException,
-    PdfixFailedToSaveLanguageException,
-    PdfixInitializeException,
 )
-from utils_sdk import authorize_sdk
+from logger import get_logger
+
+logger: logging.Logger = get_logger("app_logger")
 
 
-class DetectLanguage:
-    def __init__(self, license_name: str, license_key: str, input: str, output_path: str) -> None:
+class DetectLanguage(ABC):
+    def __init__(self, input_path: str, output_path: str) -> None:
         """
-        Initialize class for tagging pdf.
+        Initialize class for detecting language from a PDF document.
 
         Args:
-            license_name (string): Pdfix sdk license name (e-mail).
-            license_key (string): Pdfix sdk license key.
-            input (string): Path or text.
-            output_path (string): Path.
+            input_path (string): Path to the PDF document.
+            output_path (string): Path to save the detected language.
         """
-        self.license_name = license_name
-        self.license_key = license_key
-        self.input = input
-        self.output_path = output_path
+        self.input_path: str = input_path
+        self.output_path: str = output_path
 
-    def detect(self) -> None:
+    def _gather_words_from_each_page(self, pdfix: Pdfix, doc: PdfDoc) -> list[list[str]]:
         """
-        According to chosen type of input and output create list of pages where each page contains max 100 words.
-        Use these pages to detect language on each of them. Output most common language.
-
-        Allowed input and output combination:
-        - pdf 2 pdf
-        - pdf 2 txt
-        - txt 2 txt
-        - input 2 txt
-        """
-        with tqdm(total=100) as progress_bar:
-            progress_bar.set_description("Loading words")
-
-            self.pdfix = GetPdfix()
-            if self.pdfix is None:
-                raise PdfixInitializeException()
-
-            # Choose input type and read words into pages
-            pages: list[list[str]] = []
-
-            if self.input.lower().endswith(".pdf"):
-                pages = self._extract_text_from_pdf(progress_bar, 50)
-            elif self.input.lower().endswith(".txt"):
-                pages = self._extract_text_from_txt()
-            elif self.output_path.lower().endswith(".txt"):
-                pages = self._extract_text_from_input()
-            else:
-                print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
-                raise ArgumentException()
-
-            progress_bar.n = 50
-            progress_bar.set_description("Detecting language")
-            progress_bar.refresh()
-
-            if len(pages) == 0 or len(pages[0]) == 0:
-                raise FailToExtractWordsException()
-
-            count: int = len(pages)
-            step: float = float(45) / count
-
-            # Run detect on each page
-            languages: list[str] = []
-            for page in pages:
-                language = self._detect_language_for_page(page)
-                if language:
-                    languages.append(language)
-                progress_bar.update(step)
-
-            progress_bar.n = 95
-            progress_bar.set_description("Saving")
-            progress_bar.refresh()
-
-            # Get winning language
-            language_counter = Counter(languages)
-            most_used_langugage: list[tuple[str, int]] = language_counter.most_common(1)
-
-            if most_used_langugage:
-                print(f"Detected language: {most_used_langugage[0][0]}")
-
-            content_to_write = most_used_langugage[0][0] if most_used_langugage else ""
-
-            # Choose output type and write result
-            if self.input.lower().endswith(".pdf") and self.output_path.lower().endswith(".pdf"):
-                self._write_to_pdf(content_to_write)
-            elif self.output_path.lower().endswith(".txt"):
-                self._write_to_txt(content_to_write)
-            else:
-                print("Invalid input/output combination. See --help for more information.", file=sys.stderr)
-                raise ArgumentException()
-
-            progress_bar.n = 100
-            progress_bar.set_description("Done")
-            progress_bar.refresh()
-
-    def _extract_text_from_pdf(self, progress_bar: tqdm, total_units: float) -> list[list[str]]:
-        """
-        For given PDF document extract words from each page. Take max 100 words per page.
+        Gather words from each page of the document.
 
         Args:
-            progress_bar (tqdm): Progress bar.
-            total_units (float): How much progress can be filled together.
+            pdfix (Pdfix): The PDFix instance.
+            doc (PdfDoc): The document to gather words from.
 
         Returns:
-            For each page list of words.
+            A list of lists of words from each page.
         """
-        authorize_sdk(self.pdfix, self.license_name, self.license_key)
-
-        doc = self.pdfix.OpenDoc(self.input, "")
-        if doc is None:
-            raise PdfixFailedToOpenException(self.pdfix, self.input)
-
         result: list[list[str]] = []
 
         page_count: int = doc.GetNumPages()
-        step: float = float(total_units) / page_count
+        exception_for_later: Optional[Exception] = None
 
-        try:
-            for page_index in range(0, page_count):
-                # Acquire page
-                page: PdfPage = doc.AcquirePage(page_index)
-                if page is None:
-                    raise PdfixFailedToReadException(self.pdfix, "Failed to acquire Page")
+        for page_index in range(0, page_count):
+            # Acquire page
+            page: Optional[PdfPage] = doc.AcquirePage(page_index)
+            if page is None:
+                raise PdfixFailedToReadException(pdfix, "Failed to acquire Page")
 
-                exception_for_later: Optional[Exception] = None
+            try:
+                # Get the page map of the current page
+                page_map: Optional[PdePageMap] = page.AcquirePageMap()
+                if page_map is None:
+                    raise PdfixFailedToReadException(pdfix, "Failed to acquire PageMap")
 
                 try:
-                    # Get the page map of the current page
-                    page_map: PdePageMap = page.AcquirePageMap()
-                    if page_map is None:
-                        raise PdfixFailedToReadException(self.pdfix, "Failed to acquire PageMap")
+                    if not page_map.CreateElements():
+                        raise PdfixFailedToReadException(pdfix, "Failed to create element")
 
-                    try:
-                        if not page_map.CreateElements():
-                            raise PdfixFailedToReadException(self.pdfix, "Failed to create element")
+                    # Get page container
+                    container: Optional[PdeElement] = page_map.GetElement()
+                    if container is None:
+                        raise PdfixFailedToReadException(pdfix, "Failed to get page element")
 
-                        # Get page container
-                        container: PdeElement = page_map.GetElement()
-                        if container is None:
-                            raise PdfixFailedToReadException(self.pdfix, "Failed to get page element")
+                    # Extract max 100 words from page
+                    words: list[str] = self._extract_words(container)
+                    if len(words) > 0:
+                        result.append(words[:100])
 
-                        # Extract max 100 words from page
-                        words = self._extract_words(container)
-                        if len(words) > 0:
-                            result.append(words[:100])
-
-                    except Exception:
-                        raise
-                    finally:
-                        page_map.Release
-                except Exception as e:
-                    exception_for_later = e
-                    # Give chance to other pages (no exception propagation)
-                    print(f"Problem with page {page_index + 1}", file=sys.stderr)
+                except Exception:
+                    raise
                 finally:
-                    page.Release()
+                    page_map.Release
+            except Exception as e:
+                exception_for_later = e
+                logger.error(f"Problem with page {page_index + 1}")
+                # Give chance to other pages (no exception propagation)
+            finally:
+                page.Release()
 
-                progress_bar.update(step)
-
-                if len(result) == 0 and exception_for_later:
-                    raise exception_for_later
-        except Exception:
-            raise
-        finally:
-            doc.Close()
+        if len(result) == 0 and exception_for_later:
+            raise exception_for_later
 
         return result
 
@@ -195,95 +92,21 @@ class DetectLanguage:
         Returns:
             List of words under element or its children.
         """
-        elem_type = element.GetType()
+        elem_type: int = element.GetType()
 
         words: list[str] = []
 
         if kPdeText == elem_type:
-            text_elem = PdeText(element.obj)
-            text = text_elem.GetText()
+            text_elem: PdeText = PdeText(element.obj)
+            text: str = text_elem.GetText()
             for word in text.split():
                 words.append(word)
         else:
-            count = element.GetNumChildren()
+            count: int = element.GetNumChildren()
             if count > 0:
                 for child_index in range(0, count):
-                    child = element.GetChild(child_index)
+                    child: Optional[PdeElement] = element.GetChild(child_index)
                     if child is not None:
                         words.extend(self._extract_words(child))
 
         return words
-
-    def _extract_text_from_txt(self) -> list[list[str]]:
-        """
-        For given TXT file, extract max first 100 words.
-
-        Returns:
-            One page with max 100 words.
-        """
-        with open(self.input, "r", encoding="utf-8") as text_file:
-            all_text: str = text_file.read()
-
-        return [all_text.split()[:100]]
-
-    def _extract_text_from_input(self) -> list[list[str]]:
-        """
-        For given input string, extract max first 100 words.
-
-        Returns:
-            One page with max 100 words.
-        """
-        return [self.input.split()[:100]]
-
-    def _detect_language_for_page(self, page: list[str]) -> str:
-        """
-        Run detection on page (max 100 words).
-
-        Args:
-            page (list[str]): List of first 100 words from page.
-
-        Returns:
-            Detected language or empty string.
-        """
-        try:
-            text = " ".join(page)
-            return detect(text)
-        except LangDetectException as e:
-            print(e, file=sys.stderr)
-            return ""
-
-    def _write_to_pdf(self, content_to_write: str) -> None:
-        """
-        Write content to PDF file specified in output_path.
-
-        Args:
-            content_to_write (str): Content.
-        """
-        if content_to_write:
-            doc = self.pdfix.OpenDoc(self.input, "")
-            if doc is None:
-                raise PdfixFailedToSaveLanguageException(self.pdfix, "Unable to open pdf")
-
-            if not doc.SetLang(content_to_write):
-                raise PdfixFailedToSaveLanguageException(self.pdfix)
-
-            with tempfile.NamedTemporaryFile() as temp_file:
-                if not doc.Save(temp_file.name, kSaveFull):
-                    raise PdfixFailedToSaveException(self.pdfix, temp_file.name)
-
-                doc.Close()
-
-                # Copy temp file to output path
-                shutil.copyfile(temp_file.name, self.output_path)
-        else:
-            raise FailToDetectLangException()
-
-    def _write_to_txt(self, content_to_write: str) -> None:
-        """
-        Write content to TXT file specified in output_path.
-
-        Args:
-            content_to_write (str): Content.
-        """
-        with open(self.output_path, "w", encoding="utf-8") as outfile:
-            outfile.write(content_to_write)

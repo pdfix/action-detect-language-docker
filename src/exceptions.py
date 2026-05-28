@@ -9,6 +9,7 @@ EC_PDFIX_FAILED_TO_READ = 23
 EC_PDFIX_FAILED_TO_OPEN = 24
 EC_PDFIX_FAILED_TO_SAVE = 25
 EC_PDFIX_FAILED_TO_SAVE_LANG = 26
+EC_PDFIX_FAILED_TO_LOAD_TEMPLATE = 27
 
 EC_FAILED_TO_OBTAIN_TEXT = 30
 EC_FAILED_TO_DETECT_LANG = 31
@@ -22,6 +23,7 @@ MESSAGE_PDFIX_FAILED_TO_READ = "Failed to read PDF document."
 MESSAGE_PDFIX_FAILED_TO_OPEN = "Failed to open PDF document."
 MESSAGE_PDFIX_FAILED_TO_SAVE = "Failed to save PDF document."
 MESSAGE_PDFIX_FAILED_TO_SAVE_LANG = "Failed to set language to PDF document."
+MESSAGE_PDFIX_FAILED_TO_LOAD_TEMPLATE = "Failed to load template file."
 
 MESSAGE_FAILED_TO_OBTAIN_TEXT = "No words were extracted from input."
 MESSAGE_FAILED_TO_DETECT_LANG = "No language was detected, not setting it to PDF."
@@ -88,6 +90,11 @@ class PdfixFailedToSaveException(PdfixException):
 class PdfixFailedToSaveLanguageException(PdfixException):
     def __init__(self, pdfix: Pdfix, message: str = "") -> None:
         super().__init__(pdfix, EC_PDFIX_FAILED_TO_SAVE_LANG, f"{MESSAGE_PDFIX_FAILED_TO_SAVE_LANG} {message}")
+
+
+class PdfixFailedToLoadTemplateException(PdfixException):
+    def __init__(self, pdfix: Pdfix, message: str = "") -> None:
+        super().__init__(pdfix, EC_PDFIX_FAILED_TO_LOAD_TEMPLATE, f"{MESSAGE_PDFIX_FAILED_TO_LOAD_TEMPLATE} {message}")
 
 
 class DetectLanguageException(ExpectedException):

@@ -1,6 +1,11 @@
+import logging
+
 from pdfixsdk import Pdfix
 
 from exceptions import PdfixActivationException, PdfixAuthorizationException
+from logger import get_logger
+
+logger: logging.Logger = get_logger("app_logger")
 
 
 def authorize_sdk(pdfix: Pdfix, license_name: str, license_key: str) -> None:
@@ -21,4 +26,4 @@ def authorize_sdk(pdfix: Pdfix, license_name: str, license_key: str) -> None:
         if not pdfix.GetStandarsAuthorization().Activate(license_key):
             raise PdfixActivationException(pdfix)
     else:
-        print("No license name or key provided. Using PDFix SDK trial")
+        logger.info("No license name or key provided. Using PDFix SDK trial")

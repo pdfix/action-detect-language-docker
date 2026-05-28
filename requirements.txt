@@ -1,5 +1,7 @@
 langdetect==1.0.9
-pdfix-sdk==8.2.0
+# pdfix-sdk @ https://dl.pdfix.net/builds/pdfix-sdk/master/c27d8892ed7f24b41fdece184a6ef7bc346171a6/python/pdfix_sdk-9.0.1-py3-none-any.whl
+pdfix-sdk @ https://dl.pdfix.net/builds/pdfix-sdk/master/8b8f74ea83871734e2d7e4c6c681dd5454b6e6b8/python/pdfix_sdk-9.0.1-py3-none-any.whl
+# pdfix-sdk==9.0.1
 requests==2.33.1
 tqdm==4.67.1
 types-requests==2.33.0.20260408

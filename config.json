@@ -14,7 +14,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-doc-metadata --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -59,7 +59,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest extract-text -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -93,6 +93,96 @@
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
         {
+            "title": "Set Language For Tags (LangDetect)",
+            "name": "pdfix_detect_tag_language_to_pdf_langdetect",
+            "desc": "Automatically detects the language of each filtered tag text and saves the detected language to it in a PDF document [Local]",
+            "version": "v0.0.0",
+            "icon": "language",
+            "category": "Metadata",
+            "subtype": "detect_language_tag_to_pdf",
+            "local": true,
+            "docker": {
+                "name": "pdfix/detect-language",
+                "tag": "latest"
+            },
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -t \"/data/${template_json}\" -o \"/data/${output_pdf}\"",
+            "args": [
+                {
+                    "name": "input_pdf",
+                    "desc": "Input PDF file",
+                    "flags": 2,
+                    "type": "file_path",
+                    "ext": "pdf",
+                    "value": ""
+                },
+                {
+                    "name": "output_pdf",
+                    "desc": "Output PDF file",
+                    "flags": 4,
+                    "type": "file_path",
+                    "ext": "pdf",
+                    "value": ""
+                },
+                {
+                    "name": "template_json",
+                    "desc": "Template JSON file",
+                    "type": "file_path",
+                    "ext": "json",
+                    "value": ""
+                }
+            ],
+            "params": [
+                {
+                    "title": "Objects",
+                    "desc": "Define the page content objects to be deleted",
+                    "name": "object_types",
+                    "type": "object",
+                    "value": ".*",
+                    "values": [
+                        {
+                            "desc": "Empty or whitespace only texts",
+                            "value": {
+                                "template": {
+                                    "object_update": [
+                                        {
+                                            "query": {
+                                                "$and": [
+                                                    {
+                                                        "$0_text":
+                                                        {
+                                                            "$regex": "^\\s*$"
+                                                        }
+                                                    }
+                                                ],
+                                                "param": [
+                                                    "pds_text"
+                                                ]
+                                            },
+                                            "statement": "$if"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "errors": {
+                "10": "Failed to parse arguments. Please check the usage and try again.",
+                "20": "Failed to initialize PDFix SDK.",
+                "21": "Failed to activate PDFix SDK acount.",
+                "22": "Failed to authorize PDFix SDK acount.",
+                "23": "Failed to read PDF document.",
+                "24": "Failed to open PDF document.",
+                "25": "Failed to save PDF document.",
+                "26": "Failed to set language to PDF document.",
+                "27": "Failed to load template file.",
+                "30": "No words were extracted from input.",
+                "31": "No words were extracted from input."
+            },
+            "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
+        },
+        {
             "title": "Set Language (LangDetect)",
             "name": "pdfix_detect_txt_language_to_text_langdetect",
             "desc": "Automatically detects the language from text and saves the detected language code to a TXT file [Local]",
@@ -105,7 +195,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest lang-detect -i \"/data/${input_txt}\" -o \"/data/${output_txt}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest extract-text -i \"/data/${input_txt}\" -o \"/data/${output_txt}\"",
             "args": [
                 {
                     "name": "input_txt",
