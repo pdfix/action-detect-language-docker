@@ -12,14 +12,14 @@ from logger import get_logger
 logger: logging.Logger = get_logger("app_logger")
 
 
-class DetectLanguage(ABC):
+class SetLanguage(ABC):
     def __init__(self, input_path: str, output_path: str) -> None:
         """
         Initialize class for detecting language from a PDF document.
 
         Args:
             input_path (string): Path to the PDF document.
-            output_path (string): Path to save the detected language.
+            output_path (string): Path to file where PDF document with detected language will be saved.
         """
         self.input_path: str = input_path
         self.output_path: str = output_path

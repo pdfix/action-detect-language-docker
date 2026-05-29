@@ -11,11 +11,20 @@ logger: logging.Logger = get_logger("app_logger")
 
 class ParamsParser:
     def __init__(self, params_json_path: str) -> None:
+        """
+        Initialize the ParamsParser.
+
+        Args:
+            params_json_path (str): Path to the params JSON file.
+        """
         self.params_json_path: str = params_json_path
         self.params: dict[str, Any] = {}
         self.template_json_path: str = ""
 
     def parse(self) -> None:
+        """
+        Parse the params JSON file. If template is provided, create a temporary JSON file with the template data.
+        """
         with open(self.params_json_path, "r") as file:
             json_data: Any = json.load(file)
 
@@ -39,6 +48,9 @@ class ParamsParser:
         self._create_template_json_file()
 
     def clean_up(self) -> None:
+        """
+        Clean up the ParamsParser.
+        """
         if self.template_json_path:
             os.remove(self.template_json_path)
 

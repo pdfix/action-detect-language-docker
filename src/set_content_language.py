@@ -32,7 +32,7 @@ from utils_sdk import authorize_sdk
 logger: logging.Logger = get_logger("app_logger")
 
 
-class SetTagLanguage(SetLanguage):
+class SetContentLanguage(SetLanguage):
     def __init__(
         self, license_name: str, license_key: str, input_path: str, template_path: str, output_path: str
     ) -> None:
@@ -52,9 +52,9 @@ class SetTagLanguage(SetLanguage):
         self.template_path: str = template_path
         self.output_path: str = output_path
 
-    def set_tag_language(self) -> None:
+    def set_content_language(self) -> None:
         """
-        Set language to chosen tags in a PDF document.
+        Set language to chosen content in a PDF document.
         """
         pdfix: Optional[Pdfix] = GetPdfix()
         if pdfix is None:

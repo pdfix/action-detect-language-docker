@@ -12,15 +12,15 @@ from exceptions import (
     PdfixFailedToSaveLanguageException,
     PdfixInitializeException,
 )
-from lang_detect import DetectLanguage
 from logger import get_logger
+from set_language import SetLanguage
 from utils import detect_language
 from utils_sdk import authorize_sdk
 
 logger: logging.Logger = get_logger("app_logger")
 
 
-class SetDocMetadata(DetectLanguage):
+class SetDocumentLanguage(SetLanguage):
     def __init__(self, license_name: str, license_key: str, input_path: str, output_path: str) -> None:
         """
         Initialize class for setting document metadata on a PDF document.
@@ -36,7 +36,7 @@ class SetDocMetadata(DetectLanguage):
         self.input_path: str = input_path
         self.output_path: str = output_path
 
-    def set_doc_metadata(self) -> None:
+    def set_document_language(self) -> None:
         """
         Set language to document metadata on a PDF document.
         """

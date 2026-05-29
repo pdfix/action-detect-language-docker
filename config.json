@@ -3,7 +3,7 @@
     "version": "v0.0.0",
     "actions": [
         {
-            "title": "Set Document Language  (LangDetect)",
+            "title": "Set Document Language (LangDetect)",
             "name": "pdfix_detect_pdf_language_langdetect",
             "desc": "Automatically detects the language of a PDF and updates its metadata [Local]",
             "version": "v0.0.0",
@@ -14,7 +14,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-doc-metadata --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-document-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -48,52 +48,7 @@
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
         {
-            "title": "Export Language from PDF (LangDetect)",
-            "name": "pdfix_detect_pdf_language_to_text_langdetect",
-            "desc": "Automatically detects the language of a PDF and saves the detected language code to a TXT file [Local]",
-            "version": "v0.0.0",
-            "icon": "language_txt",
-            "category": "Metadata",
-            "local": true,
-            "docker": {
-                "name": "pdfix/detect-language",
-                "tag": "latest"
-            },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest extract-text -i \"/data/${input_pdf}\" -o \"/data/${output_txt}\"",
-            "args": [
-                {
-                    "name": "input_pdf",
-                    "desc": "Input PDF file",
-                    "flags": 2,
-                    "type": "file_path",
-                    "ext": "pdf",
-                    "value": ""
-                },
-                {
-                    "name": "output_txt",
-                    "desc": "Output text file containing the detected language code",
-                    "flags": 4,
-                    "type": "file_path",
-                    "ext": "txt",
-                    "value": ""
-                }
-            ],
-            "errors": {
-                "10": "Failed to parse arguments. Please check the usage and try again.",
-                "20": "Failed to initialize PDFix SDK.",
-                "21": "Failed to activate PDFix SDK acount.",
-                "22": "Failed to authorize PDFix SDK acount.",
-                "23": "Failed to read PDF document.",
-                "24": "Failed to open PDF document.",
-                "25": "Failed to save PDF document.",
-                "26": "Failed to set language to PDF document.",
-                "30": "No words were extracted from input.",
-                "31": "No words were extracted from input."
-            },
-            "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
-        },
-        {
-            "title": "Set Language For Tags (LangDetect)",
+            "title": "Set Tag Language (LangDetect)",
             "name": "pdfix_detect_tag_language_to_pdf_langdetect",
             "desc": "Automatically detects the language of each filtered tag text and saves the detected language to it in a PDF document [Local]",
             "version": "v0.0.0",
@@ -105,7 +60,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -t \"/data/${template_json}\" -o \"/data/${output_pdf}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -122,47 +77,81 @@
                     "type": "file_path",
                     "ext": "pdf",
                     "value": ""
+                }
+            ],
+            "params": [
+                {
+                    "title": "Tags",
+                    "desc": "Specify the tags using a ECMAScript regular expression or define them by template tag_update",
+                    "name": "tag_names",
+                    "type": "tag",
+                    "value": ".*",
+                    "values": [
+                        {
+                            "desc": "All tags",
+                            "value": ".*"
+                        }
+                    ]
+                }
+            ],
+            "errors": {
+                "10": "Failed to parse arguments. Please check the usage and try again.",
+                "20": "Failed to initialize PDFix SDK.",
+                "21": "Failed to activate PDFix SDK acount.",
+                "22": "Failed to authorize PDFix SDK acount.",
+                "23": "Failed to read PDF document.",
+                "24": "Failed to open PDF document.",
+                "25": "Failed to save PDF document.",
+                "26": "Failed to set language to PDF document.",
+                "27": "Failed to load template file.",
+                "30": "No words were extracted from input.",
+                "31": "No words were extracted from input."
+            },
+            "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
+        },
+        {
+            "title": "Set Content Language (LangDetect)",
+            "name": "pdfix_detect_content_language_to_pdf_langdetect",
+            "desc": "Automatically detects the language of each filtered tag text and saves the detected language to it in a PDF document [Local]",
+            "version": "v0.0.0",
+            "icon": "language",
+            "category": "Metadata",
+            "subtype": "detect_language_tag_to_pdf",
+            "local": true,
+            "docker": {
+                "name": "pdfix/detect-language",
+                "tag": "latest"
+            },
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\"",
+            "args": [
+                {
+                    "name": "input_pdf",
+                    "desc": "Input PDF file",
+                    "flags": 2,
+                    "type": "file_path",
+                    "ext": "pdf",
+                    "value": ""
                 },
                 {
-                    "name": "template_json",
-                    "desc": "Template JSON file",
+                    "name": "output_pdf",
+                    "desc": "Output PDF file",
+                    "flags": 4,
                     "type": "file_path",
-                    "ext": "json",
+                    "ext": "pdf",
                     "value": ""
                 }
             ],
             "params": [
                 {
                     "title": "Objects",
-                    "desc": "Define the page content objects to be deleted",
+                    "desc": "Define the objects by the template object_update",
                     "name": "object_types",
                     "type": "object",
                     "value": ".*",
                     "values": [
                         {
-                            "desc": "Empty or whitespace only texts",
-                            "value": {
-                                "template": {
-                                    "object_update": [
-                                        {
-                                            "query": {
-                                                "$and": [
-                                                    {
-                                                        "$0_text":
-                                                        {
-                                                            "$regex": "^\\s*$"
-                                                        }
-                                                    }
-                                                ],
-                                                "param": [
-                                                    "pds_text"
-                                                ]
-                                            },
-                                            "statement": "$if"
-                                        }
-                                    ]
-                                }
-                            }
+                            "desc": "All page objects",
+                            "value": ".*"
                         }
                     ]
                 }
@@ -195,7 +184,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest extract-text -i \"/data/${input_txt}\" -o \"/data/${output_txt}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest detect_language -i \"/data/${input_txt}\" -o \"/data/${output_txt}\"",
             "args": [
                 {
                     "name": "input_txt",
