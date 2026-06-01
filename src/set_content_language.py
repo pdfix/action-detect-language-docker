@@ -7,12 +7,17 @@ from pdfixsdk import (
     GetPdfix,
     PdfDoc,
     Pdfix,
+    PdfPage,
     PdfTemplateQuery,
-    PdsName,
+    PdsContent,
+    PdsContentMark,
+    PdsForm,
     PdsObject,
+    PdsPageObject,
     PdsStream,
-    PdsString,
+    PdsStructElement,
     PdsStructTree,
+    PdsText,
     kDataFormatJson,
     kSaveFull,
 )
@@ -79,21 +84,28 @@ class SetContentLanguage(SetLanguage):
             if not template_query.LoadFromStream(stream, kDataFormatJson):
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to load template from stream")
 
-            # Process struct tree
+            # Acquire struct tree
             struct_tree: Optional[PdsStructTree] = doc.GetStructTree()
             if struct_tree is None:
                 raise PdfixFailedToReadException(pdfix, "Failed to acquire StructTree")
 
-            for i in range(struct_tree.GetNumChildren()):
-                child_object: Optional[PdsObject] = struct_tree.GetChildObject(i)
-                if child_object is None:
+            # Process each page
+            page_count: int = doc.GetNumPages()
+            for page_index in range(page_count):
+                page: Optional[PdfPage] = doc.AcquirePage(page_index)
+                if page is None:
+                    logger.error(f"Failed to acquire page {page_index + 1}")
                     continue
 
-                child_element: Optional[PdsStructTree] = struct_tree.GetStructElementFromObject(child_object)
-                if child_element is None:
-                    continue
+                try:
+                    content: Optional[PdsContent] = page.GetContent()
+                    if content is None:
+                        logger.error(f"Failed to acquire content for page {page_index + 1}")
+                        continue
 
-                self._process_struct_element(template_query, struct_tree, child_element)
+                    self._process_content(template_query, struct_tree, content)
+                finally:
+                    page.Release()
 
             # Save document
             with tempfile.NamedTemporaryFile() as temp_file:
@@ -109,38 +121,85 @@ class SetContentLanguage(SetLanguage):
 
         pdfix.Destroy()
 
-    def _process_struct_element(
-        self, template_query: PdfTemplateQuery, struct_tree: PdsStructTree, struct_element: PdsStructTree
+    def _process_content(
+        self, template_query: PdfTemplateQuery, struct_tree: PdsStructTree, content: PdsContent
     ) -> None:
+        # Process each page object
+        for object_index in range(content.GetNumObjects()):
+            page_object: Optional[PdsPageObject] = content.GetObject(object_index)
+            if page_object is None:
+                continue
 
-        # Check filter
-        if template_query.TestStructElement(struct_element):
-            text: str = ""
+            self._process_page_object(template_query, struct_tree, page_object)
 
-            if isinstance(struct_element, PdsString):
-                text = struct_element.GetText()
-            elif isinstance(struct_element, PdsName):
-                text = struct_element.GetText()
+    def _process_page_object(
+        self, template_query: PdfTemplateQuery, struct_tree: PdsStructTree, page_object: PdsPageObject
+    ) -> None:
+        content_mark: Optional[PdsContentMark] = page_object.GetContentMark()
+        if content_mark is not None:
+            self._process_content_marks(template_query, struct_tree, page_object, content_mark)
 
-            if text:
-                language = detect_language(text)
-                if language:
-                    struct_element.SetLang(language)
-                else:
-                    logger.error(f"Failed to detect language for text: {text}")
+        if isinstance(page_object, PdsForm):
+            form_content: Optional[PdsContent] = page_object.GetContent()
+            if form_content is not None:
+                self._process_content(template_query, struct_tree, form_content)
+
+    def _process_content_marks(
+        self,
+        template_query: PdfTemplateQuery,
+        struct_tree: PdsStructTree,
+        page_object: PdsPageObject,
+        content_mark: PdsContentMark,
+    ) -> None:
+        num_tags: int = content_mark.GetNumTags()
+        if num_tags == 0:
+            return
+
+        text: str = self._get_page_object_text(page_object)
+
+        for tag_index in range(num_tags - 1, -1, -1):
+            struct_element: Optional[PdsStructElement] = self._get_struct_element_for_tag(
+                struct_tree, page_object, content_mark, tag_index
+            )
+            if struct_element is None:
+                continue
+
+            # Check filter
+            if not template_query.TestStructElement(struct_element):
+                continue
+
+            if not text:
+                logger.error(f"Failed to get text for page object: {page_object}")
+                return
+
+            language: str = detect_language(text)
+            if language:
+                struct_element.SetLang(language)
             else:
-                logger.error(f"Failed to get text for struct element: {struct_element} as it is {type(struct_element)}")
+                logger.error(f"Failed to detect language for text: {text}")
+            return
 
-        # Process children
-        num_kids = struct_element.GetNumChildren()
+    def _get_struct_element_for_tag(
+        self,
+        struct_tree: PdsStructTree,
+        page_object: PdsPageObject,
+        content_mark: PdsContentMark,
+        tag_index: int,
+    ) -> Optional[PdsStructElement]:
+        tag_object: Optional[PdsObject] = content_mark.GetTagObject(tag_index)
+        if tag_object is not None:
+            struct_element: Optional[PdsStructElement] = struct_tree.GetStructElementFromObject(tag_object)
+            if struct_element is not None:
+                return struct_element
 
-        for i in range(num_kids):
-            child_object: Optional[PdsObject] = struct_element.GetChildObject(i)
-            if child_object is None:
-                continue
+        struct_object: Optional[PdsObject] = page_object.GetStructObject(False)
+        if struct_object is not None:
+            return struct_tree.GetStructElementFromObject(struct_object)
 
-            child_element: Optional[PdsStructTree] = struct_tree.GetStructElementFromObject(child_object)
-            if child_element is None:
-                continue
+        return None
 
-            self._process_struct_element(template_query, struct_tree, child_element)
+    def _get_page_object_text(self, page_object: PdsPageObject) -> str:
+        # Get text from page object
+        if isinstance(page_object, PdsText):
+            return page_object.GetText()
+        return ""
