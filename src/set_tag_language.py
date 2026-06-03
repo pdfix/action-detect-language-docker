@@ -8,12 +8,12 @@ from pdfixsdk import (
     PdfDoc,
     Pdfix,
     PdfTemplateQuery,
-    PdsName,
     PdsObject,
-    PdsStream,
-    PdsString,
+    PdsStructElement,
     PdsStructTree,
+    PsFileStream,
     kDataFormatJson,
+    kPsReadOnly,
     kSaveFull,
 )
 
@@ -72,7 +72,7 @@ class SetTagLanguage(SetLanguage):
             if template_query is None:
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create Template query")
 
-            stream: Optional[PdsStream] = pdfix.CreateFileStream(self.template_path, "r")
+            stream: Optional[PsFileStream] = pdfix.CreateFileStream(self.template_path, kPsReadOnly)
             if stream is None:
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create file stream for template")
 
@@ -89,7 +89,7 @@ class SetTagLanguage(SetLanguage):
                 if child_object is None:
                     continue
 
-                child_element: Optional[PdsStructTree] = struct_tree.GetStructElementFromObject(child_object)
+                child_element: Optional[PdsStructElement] = struct_tree.GetStructElementFromObject(child_object)
                 if child_element is None:
                     continue
 
@@ -110,17 +110,14 @@ class SetTagLanguage(SetLanguage):
         pdfix.Destroy()
 
     def _process_struct_element(
-        self, template_query: PdfTemplateQuery, struct_tree: PdsStructTree, struct_element: PdsStructTree
+        self, template_query: PdfTemplateQuery, struct_tree: PdsStructTree, struct_element: PdsStructElement
     ) -> None:
 
         # Check filter
         if template_query.TestStructElement(struct_element):
-            text: str = ""
-
-            if isinstance(struct_element, PdsString):
-                text = struct_element.GetText()
-            elif isinstance(struct_element, PdsName):
-                text = struct_element.GetText()
+            text: str = struct_element.GetActualText()
+            if not text:
+                text = struct_element.GetText(65535)
 
             if text:
                 language = detect_language(text)
@@ -129,7 +126,7 @@ class SetTagLanguage(SetLanguage):
                 else:
                     logger.error(f"Failed to detect language for text: {text}")
             else:
-                logger.error(f"Failed to get text for struct element: {struct_element} as it is {type(struct_element)}")
+                logger.error(f"Failed to get text for struct element: {struct_element}")
 
         # Process children
         num_kids = struct_element.GetNumChildren()
@@ -139,7 +136,7 @@ class SetTagLanguage(SetLanguage):
             if child_object is None:
                 continue
 
-            child_element: Optional[PdsStructTree] = struct_tree.GetStructElementFromObject(child_object)
+            child_element: Optional[PdsStructElement] = struct_tree.GetStructElementFromObject(child_object)
             if child_element is None:
                 continue
 

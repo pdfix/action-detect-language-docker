@@ -14,11 +14,12 @@ from pdfixsdk import (
     PdsForm,
     PdsObject,
     PdsPageObject,
-    PdsStream,
     PdsStructElement,
     PdsStructTree,
     PdsText,
+    PsFileStream,
     kDataFormatJson,
+    kPsReadOnly,
     kSaveFull,
 )
 
@@ -77,7 +78,7 @@ class SetContentLanguage(SetLanguage):
             if template_query is None:
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create Template query")
 
-            stream: Optional[PdsStream] = pdfix.CreateFileStream(self.template_path, "r")
+            stream: Optional[PsFileStream] = pdfix.CreateFileStream(self.template_path, kPsReadOnly)
             if stream is None:
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create file stream for template")
 
