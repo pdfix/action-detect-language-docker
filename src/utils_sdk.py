@@ -1,6 +1,7 @@
 import logging
+from typing import Optional
 
-from pdfixsdk import Pdfix
+from pdfixsdk import Pdfix, PsAccountAuthorization, PsStandardAuthorization
 
 from exceptions import PdfixActivationException, PdfixAuthorizationException
 from logger import get_logger
@@ -19,11 +20,12 @@ def authorize_sdk(pdfix: Pdfix, license_name: str, license_key: str) -> None:
     """
 
     if license_name and license_key:
-        authorization = pdfix.GetAccountAuthorization()
-        if not authorization.Authorize(license_name, license_key):
+        authorization: Optional[PsAccountAuthorization] = pdfix.GetAccountAuthorization()
+        if authorization is None or not authorization.Authorize(license_name, license_key):
             raise PdfixAuthorizationException(pdfix)
     elif license_key:
-        if not pdfix.GetStandardAuthorization().Activate(license_key):
+        standard_authorization: Optional[PsStandardAuthorization] = pdfix.GetStandardAuthorization()
+        if standard_authorization is None or not standard_authorization.Activate(license_key):
             raise PdfixActivationException(pdfix)
     else:
         logger.info("No license name or key provided. Using PDFix SDK trial")
