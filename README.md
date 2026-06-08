@@ -1,6 +1,6 @@
 # Language Detection
 
-A Docker image that detects the language of a PDF or text and writes the result to a TXT file or sets language on a PDF output.
+A Docker image that detects the language of PDF documents or text using LangDetect. For PDF output, a **PDFix SDK** license is required.
 
 ## Table of Contents
 
@@ -27,36 +27,82 @@ docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest <command
 
 ## Commands
 
-- `lang-detect`: Detect language from PDF, TXT, inline text, or text string → output PDF or TXT
+- `set-document-language`: Detect language from a PDF and set it in document metadata (PDF → PDF)
+- `set-tag-language`: Detect language for filtered tags and save it on each tag (PDF → PDF)
+- `set-content-language`: Detect language for filtered page content and save it as marked content (PDF → PDF)
+- `detect_language`: Detect language from a TXT file or raw text string and write the language code to a TXT file (TXT → TXT; text → TXT)
 
 ## Arguments
 
-### `lang-detect`
-
-Supported combinations: PDF → PDF, PDF → TXT, TXT → TXT, or free text → TXT.
+### Common (PDF commands)
 
 | Option | Required | Type / expected value | Description |
 |---|:---:|---|---|
-| `--input`, `-i` | yes | Path to an existing `.pdf` or `.txt` file, or a raw text string | Source text or file |
-| `--output`, `-o` | yes | Path for output `.pdf` or `.txt` (must match the chosen mode) | Output file |
-| `--name` | no | String (PDFix account license name); required for **PDF → PDF** | PDFix license name |
-| `--key` | no | String (PDFix account license key); required for **PDF → PDF** | PDFix license key |
+| `--input`, `-i` | yes | Path to an existing `.pdf` file | Input PDF |
+| `--output`, `-o` | yes | Path for output `.pdf` file | Output PDF |
+| `--name` | no | String (PDFix account license name) | PDFix license name |
+| `--key` | no | String (PDFix account license key) | PDFix license key |
+| `--maxwords` | no | Integer (default: **100**) | How many words are considered for language detection |
+
+### `set-document-language`
+
+Uses the [Common (PDF commands)](#common-pdf-commands) arguments.
+
+### `set-tag-language`
+
+Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
+
+| Option | Required | Type / expected value | Description |
+|---|:---:|---|---|
+| `--overwrite` | no | Boolean string (default: `false`) | Overwrite already existing language on a tag |
+
+### `set-content-language`
+
+Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
+
+| Option | Required | Type / expected value | Description |
+|---|:---:|---|---|
+| `--overwrite` | no | Boolean string (default: `false`) | Overwrite already existing language on content |
+
+### `detect_language`
+
+| Option | Required | Type / expected value | Description |
+|---|:---:|---|---|
+| `--input`, `-i` | yes | Path to an existing `.txt` file, or a raw text string | Source text or file |
+| `--output`, `-o` | yes | Path for output `.txt` file | Output file containing the detected language code |
+| `--maxwords` | no | Integer (default: **100**) | How many words are considered for language detection |
 
 ## Examples
 
-Detect language and write a language code to `output.txt`:
+Set detected language in PDF document metadata:
 
 ```bash
 docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
-  lang-detect -i /data/input.pdf -o /data/output.txt
+  set-document-language --name "${LICENSE_NAME}" --key "${LICENSE_KEY}" \
+  --input /data/input.pdf --output /data/output.pdf --maxwords 100
 ```
 
-Set detected language on an output PDF (requires PDFix license for PDF output):
+Set detected language on PDF tags:
 
 ```bash
 docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
-  lang-detect --name "${LICENSE_NAME}" --key "${LICENSE_KEY}" \
-  -i /data/input.pdf -o /data/output.pdf
+  set-tag-language --name "${LICENSE_NAME}" --key "${LICENSE_KEY}" \
+  --input /data/input.pdf --output /data/output.pdf --maxwords 100 --overwrite true
+```
+
+Set detected language on PDF page content:
+
+```bash
+docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
+  set-content-language --name "${LICENSE_NAME}" --key "${LICENSE_KEY}" \
+  --input /data/input.pdf --output /data/output.pdf --maxwords 100 --overwrite true
+```
+
+Detect language from a text file and write the language code to `output.txt`:
+
+```bash
+docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
+  detect_language --input /data/input.txt --output /data/output.txt --maxwords 100
 ```
 
 ## Help & support
