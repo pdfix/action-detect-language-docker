@@ -24,13 +24,14 @@ class SetLanguage(ABC):
         self.input_path: str = input_path
         self.output_path: str = output_path
 
-    def _gather_words_from_each_page(self, pdfix: Pdfix, doc: PdfDoc) -> list[list[str]]:
+    def _gather_words_from_each_page(self, pdfix: Pdfix, doc: PdfDoc, maxwords: int) -> list[list[str]]:
         """
         Gather words from each page of the document.
 
         Args:
             pdfix (Pdfix): The PDFix instance.
             doc (PdfDoc): The document to gather words from.
+            maxwords (int): How many words are considered for language detection.
 
         Returns:
             A list of lists of words from each page.
@@ -61,10 +62,10 @@ class SetLanguage(ABC):
                     if container is None:
                         raise PdfixFailedToReadException(pdfix, "Failed to get page element")
 
-                    # Extract max 100 words from page
+                    # Extract max X words from page
                     words: list[str] = self._extract_words(container)
                     if len(words) > 0:
-                        result.append(words[:100])
+                        result.append(words[:maxwords])
 
                 except Exception:
                     raise

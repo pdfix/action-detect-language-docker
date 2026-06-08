@@ -3,12 +3,14 @@ import sys
 import threading
 import traceback
 from pathlib import Path
+from typing import Any
 
 from constants import CONFIG_FILE
 from detect_language import DetectLanguage
 from exceptions import (
     EC_ARG_GENERAL,
     MESSAGE_ARG_GENERAL,
+    ArgumentException,
     ExpectedException,
 )
 from image_update import DockerImageContainerUpdateChecker
@@ -16,6 +18,26 @@ from params_parser import ParamsParser
 from set_content_language import SetContentLanguage
 from set_document_language import SetDocumentLanguage
 from set_tag_language import SetTagLanguage
+
+
+def str2bool(value: Any) -> bool:
+    """
+    Helper function to convert argument to boolean.
+
+    Args:
+        value (Any): The value to convert to boolean.
+
+    Returns:
+        Parsed argument as boolean.
+    """
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("yes", "true", "t", "1"):
+        return True
+    elif value.lower() in ("no", "false", "f", "0"):
+        return False
+    else:
+        raise ArgumentException(f"{MESSAGE_ARG_GENERAL} Boolean value expected.")
 
 
 def set_arguments(
@@ -41,10 +63,18 @@ def set_arguments(
                 )
             case "key":
                 parser.add_argument("--key", type=str, default="", nargs="?", help="PDFix license key.")
+            case "maxwords":
+                parser.add_argument(
+                    "--maxwords", type=int, default=100, help="How many wordsd are considered for language detection."
+                )
             case "name":
                 parser.add_argument("--name", type=str, default="", nargs="?", help="PDFix license name.")
             case "output":
                 parser.add_argument("--output", "-o", type=str, required=required_output, help=output_help)
+            case "overwrite":
+                parser.add_argument(
+                    "--overwrite", type=str2bool, default=False, help="Overwrite already existing language."
+                )
             case "template":
                 parser.add_argument("--template", "-t", type=str, required=True, help="Template file path.")
 
@@ -72,10 +102,12 @@ def get_pdfix_config(path: str) -> None:
 
 
 def run_set_document_language_subcommand(args) -> None:
-    set_document_language(args.input, args.output, args.name, args.key)
+    set_document_language(args.input, args.output, args.name, args.key, args.maxwords)
 
 
-def set_document_language(input_path: str, output_path: str, license_name: str, license_key: str) -> None:
+def set_document_language(
+    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int
+) -> None:
     """
     Set language to document metadata on a PDF document.
 
@@ -84,8 +116,9 @@ def set_document_language(input_path: str, output_path: str, license_name: str, 
         output_path (string): Path to save the PDF document.
         license_name (string): Pdfix sdk license name (e-mail).
         license_key (string): Pdfix sdk license key.
+        maxwords (int): How many words are considered for language detection.
     """
-    set_document_language = SetDocumentLanguage(license_name, license_key, input_path, output_path)
+    set_document_language = SetDocumentLanguage(license_name, license_key, input_path, output_path, maxwords)
     set_document_language.set_document_language()
 
 
@@ -94,10 +127,12 @@ def run_set_tag_language_subcommand(args) -> None:
     # TODO add clean up where needed
     params_parser = ParamsParser("")
     params_parser.clean_up()
-    set_tag_language(args.input, args.output, args.name, args.key)
+    set_tag_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
 
 
-def set_tag_language(input_path: str, output_path: str, license_name: str, license_key: str) -> None:
+def set_tag_language(
+    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int, overwrite: bool
+) -> None:
     """
     Set language to chosen tags in a PDF document.
 
@@ -106,10 +141,14 @@ def set_tag_language(input_path: str, output_path: str, license_name: str, licen
         output_path (string): Path to save the PDF document.
         license_name (string): Pdfix sdk license name (e-mail).
         license_key (string): Pdfix sdk license key.
+        maxwords (int): How many words are considered for language detection.
+        overwrite (bool): Whether to overwrite already existing language.
     """
     # TODO
     template_path: str = ""
-    set_tag_language = SetTagLanguage(license_name, license_key, input_path, template_path, output_path)
+    set_tag_language = SetTagLanguage(
+        license_name, license_key, input_path, template_path, output_path, maxwords, overwrite
+    )
     set_tag_language.set_tag_language()
 
 
@@ -118,10 +157,12 @@ def run_set_content_language_subcommand(args) -> None:
     # TODO add clean up where needed
     params_parser = ParamsParser("")
     params_parser.clean_up()
-    set_content_language(args.input, args.output, args.name, args.key)
+    set_content_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
 
 
-def set_content_language(input_path: str, output_path: str, license_name: str, license_key: str) -> None:
+def set_content_language(
+    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int, overwrite: bool
+) -> None:
     """
     Set language to chosen content in a PDF document.
 
@@ -130,26 +171,31 @@ def set_content_language(input_path: str, output_path: str, license_name: str, l
         output_path (string): Path to save the PDF document.
         license_name (string): Pdfix sdk license name (e-mail).
         license_key (string): Pdfix sdk license key.
+        maxwords (int): How many words are considered for language detection.
+        overwrite (bool): Whether to overwrite already existing language.
     """
     # TODO
     template_path: str = ""
-    set_content_language = SetContentLanguage(license_name, license_key, input_path, template_path, output_path)
+    set_content_language = SetContentLanguage(
+        license_name, license_key, input_path, template_path, output_path, maxwords, overwrite
+    )
     set_content_language.set_content_language()
 
 
 def run_detect_language_subcommand(args) -> None:
-    detect_language(args.input, args.output)
+    detect_language(args.input, args.output, args.maxwords)
 
 
-def detect_language(input_path: str, output_path: str) -> None:
+def detect_language(input_path: str, output_path: str, maxwords: int) -> None:
     """
     Detect language from a text file or input and write it to a text file.
 
     Args:
         input_path (string): Path to the TXT file or input.
         output_path (string): Path to save the extracted text.
+        maxwords (int): How many words are considered for language detection.
     """
-    detect_language = DetectLanguage(input_path, output_path)
+    detect_language = DetectLanguage(input_path, output_path, maxwords)
     detect_language.detect_language()
 
 
@@ -176,7 +222,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_document_language_subparser,
-        ["name", "key", "input", "output"],
+        ["name", "key", "input", "output", "maxwords"],
         True,
         "The PDF document.",
     )
@@ -188,7 +234,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_tag_language_subparser,
-        ["name", "key", "input", "output"],
+        ["name", "key", "input", "output", "maxwords", "overwrite"],
         True,
         "The PDF document.",
     )
@@ -200,7 +246,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_content_language_subparser,
-        ["name", "key", "input", "output"],
+        ["name", "key", "input", "output", "maxwords", "overwrite"],
         True,
         "The PDF document.",
     )
@@ -212,7 +258,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         detect_language_subparser,
-        ["input", "output"],
+        ["input", "output", "maxwords"],
         True,
         "The text file.",
     )

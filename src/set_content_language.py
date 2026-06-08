@@ -32,7 +32,7 @@ from exceptions import (
 )
 from logger import get_logger
 from set_language import SetLanguage
-from utils import detect_language
+from utils import detect_language, max_words
 from utils_sdk import authorize_sdk
 
 logger: logging.Logger = get_logger("app_logger")
@@ -40,7 +40,14 @@ logger: logging.Logger = get_logger("app_logger")
 
 class SetContentLanguage(SetLanguage):
     def __init__(
-        self, license_name: str, license_key: str, input_path: str, template_path: str, output_path: str
+        self,
+        license_name: str,
+        license_key: str,
+        input_path: str,
+        template_path: str,
+        output_path: str,
+        maxwords: int,
+        overwrite: bool,
     ) -> None:
         """
         Initialize class for setting language to chosen tags in a PDF document.
@@ -51,12 +58,16 @@ class SetContentLanguage(SetLanguage):
             input_path (string): Path to the PDF document.
             template_path (string): Path to the template file.
             output_path (string): Path to save the PDF document.
+            maxwords (int): How many words are considered for language detection.
+            overwrite (bool): Whether to overwrite already existing language.
         """
         self.license_name: str = license_name
         self.license_key: str = license_key
         self.input_path: str = input_path
         self.template_path: str = template_path
         self.output_path: str = output_path
+        self.maxwords: int = maxwords
+        self.overwrite: bool = overwrite
 
     def set_content_language(self) -> None:
         """
@@ -173,7 +184,12 @@ class SetContentLanguage(SetLanguage):
                 logger.error(f"Failed to get text for page object: {page_object}")
                 return
 
-            language: str = detect_language(text)
+            # Check overwrite
+            present_language: str = struct_element.GetLang()
+            if present_language and not self.overwrite:
+                continue
+
+            language: str = detect_language(max_words(text, self.maxwords))
             if language:
                 struct_element.SetLang(language)
             else:

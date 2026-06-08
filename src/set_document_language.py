@@ -21,7 +21,7 @@ logger: logging.Logger = get_logger("app_logger")
 
 
 class SetDocumentLanguage(SetLanguage):
-    def __init__(self, license_name: str, license_key: str, input_path: str, output_path: str) -> None:
+    def __init__(self, license_name: str, license_key: str, input_path: str, output_path: str, maxwords: int) -> None:
         """
         Initialize class for setting document metadata on a PDF document.
 
@@ -30,11 +30,13 @@ class SetDocumentLanguage(SetLanguage):
             license_key (string): Pdfix sdk license key.
             input_path (string): Path to the PDF document.
             output_path (string): Path to save the PDF document.
+            maxwords (int): How many words are considered for language detection.
         """
         self.license_name: str = license_name
         self.license_key: str = license_key
         self.input_path: str = input_path
         self.output_path: str = output_path
+        self.maxwords: int = maxwords
 
     def set_document_language(self) -> None:
         """
@@ -52,7 +54,7 @@ class SetDocumentLanguage(SetLanguage):
 
         try:
             # Gather words from each page
-            pages_words: list[list[str]] = self._gather_words_from_each_page(pdfix, doc)
+            pages_words: list[list[str]] = self._gather_words_from_each_page(pdfix, doc, self.maxwords)
             pages: list[str] = [" ".join(page) for page in pages_words]
 
             # Detect languages
