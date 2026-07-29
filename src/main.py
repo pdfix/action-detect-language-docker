@@ -1,9 +1,11 @@
 import argparse
+import json
 import sys
+import tempfile
 import threading
 import traceback
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from constants import CONFIG_FILE
 from detect_language import DetectLanguage
@@ -75,6 +77,10 @@ def set_arguments(
                 parser.add_argument(
                     "--overwrite", type=str2bool, default=False, help="Overwrite already existing language."
                 )
+            case "params":
+                parser.add_argument(
+                    "--params", type=str, required=True, help="Path to JSON file with filled parameters."
+                )
             case "template":
                 parser.add_argument("--template", "-t", type=str, required=True, help="Template file path.")
 
@@ -83,7 +89,7 @@ def run_config_subcommand(args) -> None:
     get_pdfix_config(args.output)
 
 
-def get_pdfix_config(path: str) -> None:
+def get_pdfix_config(path: Optional[str]) -> None:
     """
     If Path is not provided, output content of config.
     If Path is provided, copy config to destination path.
@@ -123,15 +129,28 @@ def set_document_language(
 
 
 def run_set_tag_language_subcommand(args) -> None:
-    # TODO parse params file argument, feed it to parser a provide path to internal template file as template json file
-    # TODO add clean up where needed
-    params_parser = ParamsParser("")
-    params_parser.clean_up()
-    set_tag_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
+        params_parser = ParamsParser(args.params)
+        params_parser.parse()
+        with open(template_file.name, "w", encoding="utf-8") as template_file_write:
+            json.dump(params_parser.params["tag_names"], template_file_write)
+        with open(template_file.name, "r", encoding="utf-8") as template_file_read:
+            print("-" * 5 + " EXTRACTED TEMPLATE: " + "-" * 5)
+            print(template_file_read.read())
+            print("-" * 25)
+        set_tag_language(
+            args.input, args.output, args.name, args.key, args.maxwords, args.overwrite, template_file.name
+        )
 
 
 def set_tag_language(
-    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int, overwrite: bool
+    input_path: str,
+    output_path: str,
+    license_name: str,
+    license_key: str,
+    maxwords: int,
+    overwrite: bool,
+    template_path: str,
 ) -> None:
     """
     Set language to chosen tags in a PDF document.
@@ -143,9 +162,8 @@ def set_tag_language(
         license_key (string): Pdfix sdk license key.
         maxwords (int): How many words are considered for language detection.
         overwrite (bool): Whether to overwrite already existing language.
+        template_path (str): Path to the template JSON file.
     """
-    # TODO
-    template_path: str = ""
     set_tag_language = SetTagLanguage(
         license_name, license_key, input_path, template_path, output_path, maxwords, overwrite
     )
@@ -153,15 +171,24 @@ def set_tag_language(
 
 
 def run_set_content_language_subcommand(args) -> None:
-    # TODO parse params file argument, feed it to parser a provide path to internal template file as template json file
-    # TODO add clean up where needed
-    params_parser = ParamsParser("")
-    params_parser.clean_up()
-    set_content_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
+        params_parser = ParamsParser(args.params)
+        params_parser.parse()
+        with open(template_file.name, "w", encoding="utf-8") as template_file_write:
+            json.dump(params_parser.params["object_types"], template_file_write)
+        set_content_language(
+            args.input, args.output, args.name, args.key, args.maxwords, args.overwrite, template_file.name
+        )
 
 
 def set_content_language(
-    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int, overwrite: bool
+    input_path: str,
+    output_path: str,
+    license_name: str,
+    license_key: str,
+    maxwords: int,
+    overwrite: bool,
+    template_path: str,
 ) -> None:
     """
     Set language to chosen content in a PDF document.
@@ -173,9 +200,8 @@ def set_content_language(
         license_key (string): Pdfix sdk license key.
         maxwords (int): How many words are considered for language detection.
         overwrite (bool): Whether to overwrite already existing language.
+        template_path (str): Path to the template JSON file.
     """
-    # TODO
-    template_path: str = ""
     set_content_language = SetContentLanguage(
         license_name, license_key, input_path, template_path, output_path, maxwords, overwrite
     )
@@ -234,7 +260,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_tag_language_subparser,
-        ["name", "key", "input", "output", "maxwords", "overwrite"],
+        ["name", "key", "input", "output", "maxwords", "overwrite", "params"],
         True,
         "The PDF document.",
     )
@@ -246,7 +272,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_content_language_subparser,
-        ["name", "key", "input", "output", "maxwords", "overwrite"],
+        ["name", "key", "input", "output", "maxwords", "overwrite", "params"],
         True,
         "The PDF document.",
     )
