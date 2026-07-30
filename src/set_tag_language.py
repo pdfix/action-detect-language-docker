@@ -1,6 +1,7 @@
 import logging
 import shutil
 import tempfile
+from dataclasses import dataclass
 from typing import Optional
 
 from pdfixsdk import (
@@ -13,6 +14,9 @@ from pdfixsdk import (
     PdsStructTree,
     PsFileStream,
     kDataFormatJson,
+    kEnumNone,
+    kEnumResultContinue,
+    kPdsStructChildElement,
     kPsReadOnly,
     kSaveFull,
 )
@@ -27,9 +31,84 @@ from exceptions import (
 from logger import get_logger
 from set_language import SetLanguage
 from utils import detect_language, max_words
-from utils_sdk import authorize_sdk
+from utils_sdk import StructElemEnumProcType, authorize_sdk, ensure_enum_struct_tree_argtypes, get_pdfix_lib
 
 logger: logging.Logger = get_logger("app_logger")
+
+
+def _format_struct_element_info(struct_element: PdsStructElement) -> str:
+    elem_type = struct_element.GetType(False)
+    num_pages = struct_element.GetNumPages()
+    if num_pages == 0:
+        return f"type={elem_type}, page=none"
+    if num_pages == 1:
+        return f"type={elem_type}, page={struct_element.GetPageNumber(0)}"
+    page_nums = ",".join(str(struct_element.GetPageNumber(i)) for i in range(num_pages))
+    return f"type={elem_type}, pages={page_nums}"
+
+
+def _resolve_struct_element(struct_tree: PdsStructTree, parent_ptr: int, index: int) -> Optional[PdsStructElement]:
+    if parent_ptr:
+        parent = PdsStructElement(parent_ptr)
+    else:
+        root_object = struct_tree.GetObject()
+        if root_object is None:
+            return None
+        parent = struct_tree.GetStructElementFromObject(root_object)
+        if parent is None:
+            return None
+
+    if parent.GetChildType(index) != kPdsStructChildElement:
+        return None
+
+    child_object: Optional[PdsObject] = parent.GetChildObject(index)
+    if child_object is None:
+        return None
+
+    return struct_tree.GetStructElementFromObject(child_object)
+
+
+@dataclass
+class _StructTreeEnumContext:
+    struct_tree: PdsStructTree
+    template_query: PdfTemplateQuery
+    overwrite: bool
+    maxwords: int
+
+    def enum_proc(self, _doc_ptr: int, parent_ptr: int, index: int, _client_data: int) -> int:
+        struct_element = _resolve_struct_element(self.struct_tree, parent_ptr, index)
+        if struct_element is None:
+            return kEnumResultContinue
+
+        element_info = _format_struct_element_info(struct_element)
+
+        if self.template_query.TestStructElement(struct_element):
+            logger.info("Template test: chosen (%s)", element_info)
+            self._apply_language(struct_element, element_info)
+        else:
+            logger.info("Template test: discarded (%s)", element_info)
+
+        return kEnumResultContinue
+
+    def _apply_language(self, struct_element: PdsStructElement, element_info: str) -> None:
+        present_language: str = struct_element.GetLang()
+        if present_language and not self.overwrite:
+            logger.debug("Skipping element with existing language (%s): %s", present_language, element_info)
+            return
+
+        text: str = struct_element.GetActualText()
+        if not text:
+            text = struct_element.GetText(65535)
+
+        if not text:
+            logger.error("Failed to get text for struct element: %s", element_info)
+            return
+
+        language = detect_language(max_words(text, self.maxwords))
+        if language:
+            struct_element.SetLang(language)
+        else:
+            logger.error("Failed to detect language for text: %s", text)
 
 
 class SetTagLanguage(SetLanguage):
@@ -87,24 +166,26 @@ class SetTagLanguage(SetLanguage):
             if stream is None:
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create file stream for template")
 
+            # TODO load regex using: template_query.LoadFromRegex(pattern)
+
             if not template_query.LoadFromStream(stream, kDataFormatJson):
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to load template from stream")
 
-            # Process struct tree
+            # Enumerate struct tree
             struct_tree: Optional[PdsStructTree] = doc.GetStructTree()
             if struct_tree is None:
                 raise PdfixFailedToReadException(pdfix, "Failed to acquire StructTree")
 
-            for i in range(struct_tree.GetNumChildren()):
-                child_object: Optional[PdsObject] = struct_tree.GetChildObject(i)
-                if child_object is None:
-                    continue
-
-                child_element: Optional[PdsStructElement] = struct_tree.GetStructElementFromObject(child_object)
-                if child_element is None:
-                    continue
-
-                self._process_struct_element(template_query, struct_tree, child_element)
+            enum_context = _StructTreeEnumContext(
+                struct_tree=struct_tree,
+                template_query=template_query,
+                overwrite=self.overwrite,
+                maxwords=self.maxwords,
+            )
+            ensure_enum_struct_tree_argtypes()
+            pdfix_lib = get_pdfix_lib()
+            struct_elem_enum_proc = StructElemEnumProcType(enum_context.enum_proc)
+            pdfix_lib.PdfDocEnumStructTree(doc.obj, None, kEnumNone, struct_elem_enum_proc, None)
 
             # Save document
             with tempfile.NamedTemporaryFile() as temp_file:
@@ -119,41 +200,3 @@ class SetTagLanguage(SetLanguage):
             doc.Close()
 
         pdfix.Destroy()
-
-    def _process_struct_element(
-        self, template_query: PdfTemplateQuery, struct_tree: PdsStructTree, struct_element: PdsStructElement
-    ) -> None:
-
-        # Check filter
-        if template_query.TestStructElement(struct_element):
-            # Check overwrite
-            present_language: str = struct_element.GetLang()
-
-            if present_language == "" or self.overwrite:
-                # Get text
-                text: str = struct_element.GetActualText()
-                if not text:
-                    text = struct_element.GetText(65535)
-
-                if text:
-                    language = detect_language(max_words(text, self.maxwords))
-                    if language:
-                        struct_element.SetLang(language)
-                    else:
-                        logger.error(f"Failed to detect language for text: {text}")
-                else:
-                    logger.error(f"Failed to get text for struct element: {struct_element}")
-
-        # Process children
-        num_kids = struct_element.GetNumChildren()
-
-        for i in range(num_kids):
-            child_object: Optional[PdsObject] = struct_element.GetChildObject(i)
-            if child_object is None:
-                continue
-
-            child_element: Optional[PdsStructElement] = struct_tree.GetStructElementFromObject(child_object)
-            if child_element is None:
-                continue
-
-            self._process_struct_element(template_query, struct_tree, child_element)

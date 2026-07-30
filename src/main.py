@@ -134,10 +134,6 @@ def run_set_tag_language_subcommand(args) -> None:
         params_parser.parse()
         with open(template_file.name, "w", encoding="utf-8") as template_file_write:
             json.dump(params_parser.params["tag_names"], template_file_write)
-        with open(template_file.name, "r", encoding="utf-8") as template_file_read:
-            print("-" * 5 + " EXTRACTED TEMPLATE: " + "-" * 5)
-            print(template_file_read.read())
-            print("-" * 25)
         set_tag_language(
             args.input, args.output, args.name, args.key, args.maxwords, args.overwrite, template_file.name
         )
