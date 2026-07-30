@@ -1,3 +1,4 @@
+import functools
 import logging
 from ctypes import CFUNCTYPE, c_int, c_void_p
 from typing import Optional
@@ -12,8 +13,6 @@ logger: logging.Logger = get_logger("app_logger")
 # Workaround for pdfix-sdk <= 9.1.1: generated bindings declare the callback as c_int.
 StructElemEnumProcType = CFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_void_p)
 PageObjectEnumProcType = CFUNCTYPE(c_int, c_void_p, c_int, c_void_p)
-_enum_struct_tree_argtypes_patched = False
-_enum_page_objects_argtypes_patched = False
 
 
 def get_pdfix_lib():
@@ -24,11 +23,8 @@ def get_pdfix_lib():
     return PdfixLib
 
 
+@functools.lru_cache(maxsize=1)
 def ensure_enum_struct_tree_argtypes() -> None:
-    global _enum_struct_tree_argtypes_patched
-    if _enum_struct_tree_argtypes_patched:
-        return
-
     pdfix_lib = get_pdfix_lib()
     pdfix_lib.PdfDocEnumStructTree.restype = c_int
     pdfix_lib.PdfDocEnumStructTree.argtypes = [
@@ -38,14 +34,10 @@ def ensure_enum_struct_tree_argtypes() -> None:
         StructElemEnumProcType,
         c_void_p,
     ]
-    _enum_struct_tree_argtypes_patched = True
 
 
+@functools.lru_cache(maxsize=1)
 def ensure_enum_page_objects_argtypes() -> None:
-    global _enum_page_objects_argtypes_patched
-    if _enum_page_objects_argtypes_patched:
-        return
-
     pdfix_lib = get_pdfix_lib()
     pdfix_lib.PdfDocEnumPageObjects.restype = c_int
     pdfix_lib.PdfDocEnumPageObjects.argtypes = [
@@ -56,7 +48,6 @@ def ensure_enum_page_objects_argtypes() -> None:
         PageObjectEnumProcType,
         c_void_p,
     ]
-    _enum_page_objects_argtypes_patched = True
 
 
 def authorize_sdk(pdfix: Pdfix, license_name: str, license_key: str) -> None:
