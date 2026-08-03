@@ -2,6 +2,7 @@ import logging
 import shutil
 import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from pdfixsdk import (
@@ -92,6 +93,7 @@ class _PageContentEnumContext:
     template_query: PdfTemplateQuery
     overwrite: bool
     maxwords: int
+    default_language: str
 
     def enum_proc(self, page_object_ptr: int, _index: int, _client_data: int) -> int:
         page_object = PdsPageObject(page_object_ptr)
@@ -128,8 +130,12 @@ class _PageContentEnumContext:
 
         language = detect_language(max_words(text, self.maxwords))
         if not language:
-            logger.error("Failed to detect language for text: %s", text)
-            return
+            logger.warning(
+                "Failed to detect language for text, using default (%s): %s",
+                self.default_language,
+                text,
+            )
+            language = self.default_language
 
         if lang_dict is not None:
             lang_dict.PutString("Lang", language)
@@ -156,30 +162,33 @@ class SetContentLanguage(SetLanguage):
         license_name: str,
         license_key: str,
         input_path: str,
-        template_path: str,
+        regex_template: str | Path,
         output_path: str,
         maxwords: int,
         overwrite: bool,
+        default_language: str,
     ) -> None:
         """
         Initialize class for setting language to chosen content in a PDF document.
 
         Args:
-            license_name (string): Pdfix sdk license name (e-mail).
-            license_key (string): Pdfix sdk license key.
-            input_path (string): Path to the PDF document.
-            template_path (string): Path to the template file.
-            output_path (string): Path to save the PDF document.
+            license_name (str): Pdfix sdk license name (e-mail).
+            license_key (str): Pdfix sdk license key.
+            input_path (str): Path to the PDF document.
+            regex_template (str | Path): Either regex or path to the template JSON file.
+            output_path (str): Path to save the PDF document.
             maxwords (int): How many words are considered for language detection.
             overwrite (bool): Whether to overwrite already existing language.
+            default_language (str): Language applied when detection fails.
         """
         self.license_name: str = license_name
         self.license_key: str = license_key
         self.input_path: str = input_path
-        self.template_path: str = template_path
+        self.regex_template: str | Path = regex_template
         self.output_path: str = output_path
         self.maxwords: int = maxwords
         self.overwrite: bool = overwrite
+        self.default_language: str = default_language
 
     def set_content_language(self) -> None:
         """
@@ -201,20 +210,22 @@ class SetContentLanguage(SetLanguage):
             if template_query is None:
                 raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create Template query")
 
-            stream: Optional[PsFileStream] = pdfix.CreateFileStream(self.template_path, kPsReadOnly)
-            if stream is None:
-                raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create file stream for template")
-
-            # TODO load regex using: template_query.LoadFromRegex(pattern)
-
-            if not template_query.LoadFromStream(stream, kDataFormatJson):
-                raise PdfixFailedToLoadTemplateException(pdfix, "Failed to load template from stream")
+            if isinstance(self.regex_template, str):
+                if not template_query.LoadFromRegex(self.regex_template):
+                    raise PdfixFailedToLoadTemplateException(pdfix, "Failed to load template from regex")
+            else:
+                stream: Optional[PsFileStream] = pdfix.CreateFileStream(str(self.regex_template), kPsReadOnly)
+                if stream is None:
+                    raise PdfixFailedToLoadTemplateException(pdfix, "Failed to create file stream for template")
+                if not template_query.LoadFromStream(stream, kDataFormatJson):
+                    raise PdfixFailedToLoadTemplateException(pdfix, "Failed to load template from stream")
 
             enum_context = _PageContentEnumContext(
                 doc=doc,
                 template_query=template_query,
                 overwrite=self.overwrite,
                 maxwords=self.maxwords,
+                default_language=self.default_language,
             )
             ensure_enum_page_objects_argtypes()
             pdfix_lib = get_pdfix_lib()

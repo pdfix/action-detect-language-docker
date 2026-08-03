@@ -1,6 +1,7 @@
 from pdfixsdk import Pdfix
 
 EC_ARG_GENERAL = 10
+EC_ARG_INVALID_REGEX_OR_TEMPLATE = 11
 
 EC_PDFIX_INITIALIZE = 20
 EC_PDFIX_ACTIVATION_FAILED = 21
@@ -15,6 +16,7 @@ EC_FAILED_TO_OBTAIN_TEXT = 30
 EC_FAILED_TO_DETECT_LANG = 31
 
 MESSAGE_ARG_GENERAL = "Failed to parse arguments. Please check the usage and try again."
+MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE = "Invalid regex or template. Please check the usage and try again."
 
 MESSAGE_PDFIX_INITIALIZE = "Failed to initialize PDFix SDK."
 MESSAGE_PDFIX_ACTIVATION_FAILED = "Failed to activate PDFix SDK acount."
@@ -42,6 +44,11 @@ class ArgumentException(ExpectedException):
     def __init__(self, message: str = MESSAGE_ARG_GENERAL, error_code: int = EC_ARG_GENERAL) -> None:
         super().__init__(error_code)
         self._add_note(message)
+
+
+class InvalidRegexOrTemplateException(ArgumentException):
+    def __init__(self) -> None:
+        super().__init__(MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE, EC_ARG_INVALID_REGEX_OR_TEMPLATE)
 
 
 class PdfixInitializeException(ExpectedException):

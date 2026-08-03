@@ -14,6 +14,7 @@ from exceptions import (
     MESSAGE_ARG_GENERAL,
     ArgumentException,
     ExpectedException,
+    InvalidRegexOrTemplateException,
 )
 from image_update import DockerImageContainerUpdateChecker
 from params_parser import ParamsParser
@@ -59,6 +60,13 @@ def set_arguments(
     """
     for name in names:
         match name:
+            case "default_language":
+                parser.add_argument(
+                    "--default-language",
+                    type=str,
+                    default="en",
+                    help="Language applied when detection fails (e.g. numbers only). Defaults to en.",
+                )
             case "input":
                 parser.add_argument(
                     "--input", "-i", type=str, required=True, help="The input PDF or TXT file or text to detect."
@@ -81,8 +89,6 @@ def set_arguments(
                 parser.add_argument(
                     "--params", type=str, required=True, help="Path to JSON file with filled parameters."
                 )
-            case "template":
-                parser.add_argument("--template", "-t", type=str, required=True, help="Template file path.")
 
 
 def run_config_subcommand(args) -> None:
@@ -129,14 +135,38 @@ def set_document_language(
 
 
 def run_set_tag_language_subcommand(args) -> None:
-    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
-        params_parser = ParamsParser(args.params)
-        params_parser.parse()
-        with open(template_file.name, "w", encoding="utf-8") as template_file_write:
-            json.dump(params_parser.params["tag_names"], template_file_write)
+    params_parser = ParamsParser(args.params)
+    params_parser.parse()
+    tag_names: Any = params_parser.params["tag_names"]
+    if isinstance(tag_names, str):
+        regex_pattern: str = tag_names
         set_tag_language(
-            args.input, args.output, args.name, args.key, args.maxwords, args.overwrite, template_file.name
+            args.input,
+            args.output,
+            args.name,
+            args.key,
+            args.maxwords,
+            args.overwrite,
+            regex_pattern,
+            args.default_language,
         )
+    elif isinstance(tag_names, dict):
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
+            with open(template_file.name, "w", encoding="utf-8") as template_file_write:
+                json.dump(tag_names, template_file_write)
+            template_path: Path = Path(template_file.name)
+            set_tag_language(
+                args.input,
+                args.output,
+                args.name,
+                args.key,
+                args.maxwords,
+                args.overwrite,
+                template_path,
+                args.default_language,
+            )
+    else:
+        raise InvalidRegexOrTemplateException()
 
 
 def set_tag_language(
@@ -146,7 +176,8 @@ def set_tag_language(
     license_key: str,
     maxwords: int,
     overwrite: bool,
-    template_path: str,
+    regex_template: str | Path,
+    default_language: str,
 ) -> None:
     """
     Set language to chosen tags in a PDF document.
@@ -158,23 +189,48 @@ def set_tag_language(
         license_key (string): Pdfix sdk license key.
         maxwords (int): How many words are considered for language detection.
         overwrite (bool): Whether to overwrite already existing language.
-        template_path (str): Path to the template JSON file.
+        regex_template (str | Path): Either regex or path to the template JSON file.
+        default_language (str): Language applied when detection fails.
     """
     set_tag_language = SetTagLanguage(
-        license_name, license_key, input_path, template_path, output_path, maxwords, overwrite
+        license_name, license_key, input_path, regex_template, output_path, maxwords, overwrite, default_language
     )
     set_tag_language.set_tag_language()
 
 
 def run_set_content_language_subcommand(args) -> None:
-    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
-        params_parser = ParamsParser(args.params)
-        params_parser.parse()
-        with open(template_file.name, "w", encoding="utf-8") as template_file_write:
-            json.dump(params_parser.params["object_types"], template_file_write)
+    params_parser = ParamsParser(args.params)
+    params_parser.parse()
+    object_types: Any = params_parser.params["object_types"]
+    if isinstance(object_types, str):
+        regex_pattern: str = object_types
         set_content_language(
-            args.input, args.output, args.name, args.key, args.maxwords, args.overwrite, template_file.name
+            args.input,
+            args.output,
+            args.name,
+            args.key,
+            args.maxwords,
+            args.overwrite,
+            regex_pattern,
+            args.default_language,
         )
+    elif isinstance(object_types, dict):
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
+            with open(template_file.name, "w", encoding="utf-8") as template_file_write:
+                json.dump(object_types, template_file_write)
+            template_path: Path = Path(template_file.name)
+            set_content_language(
+                args.input,
+                args.output,
+                args.name,
+                args.key,
+                args.maxwords,
+                args.overwrite,
+                template_path,
+                args.default_language,
+            )
+    else:
+        raise InvalidRegexOrTemplateException()
 
 
 def set_content_language(
@@ -184,7 +240,8 @@ def set_content_language(
     license_key: str,
     maxwords: int,
     overwrite: bool,
-    template_path: str,
+    regex_template: str | Path,
+    default_language: str,
 ) -> None:
     """
     Set language to chosen content in a PDF document.
@@ -196,10 +253,11 @@ def set_content_language(
         license_key (string): Pdfix sdk license key.
         maxwords (int): How many words are considered for language detection.
         overwrite (bool): Whether to overwrite already existing language.
-        template_path (str): Path to the template JSON file.
+        regex_template (str | Path): Either regex or path to the template JSON file.
+        default_language (str): Language applied when detection fails.
     """
     set_content_language = SetContentLanguage(
-        license_name, license_key, input_path, template_path, output_path, maxwords, overwrite
+        license_name, license_key, input_path, regex_template, output_path, maxwords, overwrite, default_language
     )
     set_content_language.set_content_language()
 
@@ -256,7 +314,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_tag_language_subparser,
-        ["name", "key", "input", "output", "maxwords", "overwrite", "params"],
+        ["name", "key", "input", "output", "maxwords", "overwrite", "default_language", "params"],
         True,
         "The PDF document.",
     )
@@ -268,7 +326,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_content_language_subparser,
-        ["name", "key", "input", "output", "maxwords", "overwrite", "params"],
+        ["name", "key", "input", "output", "maxwords", "overwrite", "default_language", "params"],
         True,
         "The PDF document.",
     )

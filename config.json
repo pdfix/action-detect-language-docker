@@ -42,6 +42,7 @@
             ],
             "errors": {
                 "10": "Failed to parse arguments. Please check the usage and try again.",
+                "11": "Invalid regex or template. Please check the usage and try again.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK acount.",
                 "22": "Failed to authorize PDFix SDK acount.",
@@ -67,7 +68,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\" --default-language \"${default_language}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -98,6 +99,13 @@
                     "desc": "Overwrite already existing language",
                     "type": "bool",
                     "value": false
+                },
+                {
+                    "title": "Default Language",
+                    "name": "default_language",
+                    "desc": "Language applied when detection fails (e.g. numbers only)",
+                    "type": "string",
+                    "value": "en"
                 }
             ],
             "params": [
@@ -117,6 +125,7 @@
             ],
             "errors": {
                 "10": "Failed to parse arguments. Please check the usage and try again.",
+                "11": "Invalid regex or template. Please check the usage and try again.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK acount.",
                 "22": "Failed to authorize PDFix SDK acount.",
@@ -143,7 +152,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-content-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-content-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\" --default-language \"${default_language}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -174,6 +183,13 @@
                     "desc": "Overwrite already existing language",
                     "type": "bool",
                     "value": false
+                },
+                {
+                    "title": "Default Language",
+                    "name": "default_language",
+                    "desc": "Language applied when detection fails (e.g. numbers only)",
+                    "type": "string",
+                    "value": "en"
                 }
             ],
             "params": [
@@ -193,6 +209,7 @@
             ],
             "errors": {
                 "10": "Failed to parse arguments. Please check the usage and try again.",
+                "11": "Invalid regex or template. Please check the usage and try again.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK acount.",
                 "22": "Failed to authorize PDFix SDK acount.",
@@ -247,6 +264,7 @@
             ],
             "errors": {
                 "10": "Failed to parse arguments. Please check the usage and try again.",
+                "11": "Invalid regex or template. Please check the usage and try again.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK acount.",
                 "22": "Failed to authorize PDFix SDK acount.",
