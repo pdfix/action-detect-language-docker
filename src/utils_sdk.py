@@ -1,7 +1,7 @@
 import functools
 import logging
 from ctypes import CFUNCTYPE, c_int, c_void_p
-from typing import Optional
+from typing import Callable, Optional, TypeAlias
 
 from pdfixsdk import Pdfix, PsAccountAuthorization, PsStandardAuthorization
 
@@ -13,6 +13,10 @@ logger: logging.Logger = get_logger("app_logger")
 # Workaround for pdfix-sdk <= 9.1.1: generated bindings declare the callback as c_int.
 StructElemEnumProcType = CFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_void_p)
 PageObjectEnumProcType = CFUNCTYPE(c_int, c_void_p, c_int, c_void_p)
+
+# Mypy cannot treat CFUNCTYPE(...) results as types; use these for annotations.
+StructElemEnumProcCallback: TypeAlias = Callable[..., int]
+PageObjectEnumProcCallback: TypeAlias = Callable[..., int]
 
 
 def get_pdfix_lib():

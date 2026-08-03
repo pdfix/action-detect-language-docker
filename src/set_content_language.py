@@ -38,6 +38,7 @@ from logger import get_logger
 from set_language import SetLanguage
 from utils import detect_language, max_words
 from utils_sdk import (
+    PageObjectEnumProcCallback,
     PageObjectEnumProcType,
     authorize_sdk,
     ensure_enum_page_objects_argtypes,
@@ -126,7 +127,7 @@ class SetContentLanguage(SetLanguage):
             try:
                 ensure_enum_page_objects_argtypes()
                 pdfix_lib = get_pdfix_lib()
-                page_object_enum_proc: PageObjectEnumProcType = PageObjectEnumProcType(self._enum_proc)
+                page_object_enum_proc: PageObjectEnumProcCallback = PageObjectEnumProcType(self._enum_proc)
 
                 page_count: int = doc.GetNumPages()
                 for page_index in range(page_count):
@@ -184,6 +185,10 @@ class SetContentLanguage(SetLanguage):
         page_object: PdsPageObject = PdsPageObject(page_object_ptr)
         element_info: str = self._format_page_object_info(page_object)
 
+        if self._template_query is None:
+            logger.error("Template query is not initialized")
+            return kEnumResultContinue
+
         if not self._template_query.TestPageObject(page_object):
             logger.info("Template test: discarded (%s)", element_info)
             return kEnumResultContinue
@@ -236,6 +241,10 @@ class SetContentLanguage(SetLanguage):
         last_tag_dict: Optional[PdsDictionary] = self._get_last_tag_dict(content_mark)
         if last_tag_dict is not None:
             last_tag_dict.PutString("Lang", language)
+            return
+
+        if self._doc is None:
+            logger.error("Document is not initialized")
             return
 
         span_dict: Optional[PdsDictionary] = self._doc.CreateDictObject(False)

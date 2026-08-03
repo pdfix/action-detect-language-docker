@@ -16,9 +16,7 @@ EC_FAILED_TO_OBTAIN_TEXT: int = 30
 EC_FAILED_TO_DETECT_LANG: int = 31
 
 MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage and try again."
-MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = (
-    "Invalid regex or template. Please check the usage and try again."
-)
+MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please check the usage and try again."
 
 MESSAGE_PDFIX_INITIALIZE: str = "Failed to initialize PDFix SDK."
 MESSAGE_PDFIX_ACTIVATION_FAILED: str = "Failed to activate PDFix SDK acount."

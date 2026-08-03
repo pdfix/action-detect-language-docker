@@ -31,7 +31,13 @@ from exceptions import (
 from logger import get_logger
 from set_language import SetLanguage
 from utils import detect_language, max_words
-from utils_sdk import StructElemEnumProcType, authorize_sdk, ensure_enum_struct_tree_argtypes, get_pdfix_lib
+from utils_sdk import (
+    StructElemEnumProcCallback,
+    StructElemEnumProcType,
+    authorize_sdk,
+    ensure_enum_struct_tree_argtypes,
+    get_pdfix_lib,
+)
 
 logger: logging.Logger = get_logger("app_logger")
 
@@ -112,7 +118,7 @@ class SetTagLanguage(SetLanguage):
             try:
                 ensure_enum_struct_tree_argtypes()
                 pdfix_lib = get_pdfix_lib()
-                struct_elem_enum_proc: StructElemEnumProcType = StructElemEnumProcType(self._enum_proc)
+                struct_elem_enum_proc: StructElemEnumProcCallback = StructElemEnumProcType(self._enum_proc)
                 pdfix_lib.PdfDocEnumStructTree(doc.obj, None, kEnumNone, struct_elem_enum_proc, None)
             finally:
                 self._struct_tree = None
@@ -145,13 +151,15 @@ class SetTagLanguage(SetLanguage):
         Returns:
             Enumeration result code; always continues to the next element.
         """
-        struct_element: Optional[PdsStructElement] = self._resolve_struct_element(
-            self._struct_tree, parent_ptr, index
-        )
+        struct_element: Optional[PdsStructElement] = self._resolve_struct_element(self._struct_tree, parent_ptr, index)
         if struct_element is None:
             return kEnumResultContinue
 
         element_info: str = self._format_struct_element_info(struct_element)
+
+        if self._template_query is None:
+            logger.error("Template query is not initialized")
+            return kEnumResultContinue
 
         if self._template_query.TestStructElement(struct_element):
             logger.info("Template test: chosen (%s)", element_info)
