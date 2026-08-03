@@ -1,7 +1,6 @@
 import logging
 import shutil
 import tempfile
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -37,87 +36,6 @@ from utils_sdk import StructElemEnumProcType, authorize_sdk, ensure_enum_struct_
 logger: logging.Logger = get_logger("app_logger")
 
 
-def _format_struct_element_info(struct_element: PdsStructElement) -> str:
-    elem_type = struct_element.GetType(False)
-    num_pages = struct_element.GetNumPages()
-    if num_pages == 0:
-        return f"type={elem_type}, page=none"
-    if num_pages == 1:
-        return f"type={elem_type}, page={struct_element.GetPageNumber(0)}"
-    page_nums = ",".join(str(struct_element.GetPageNumber(i)) for i in range(num_pages))
-    return f"type={elem_type}, pages={page_nums}"
-
-
-def _resolve_struct_element(struct_tree: PdsStructTree, parent_ptr: int, index: int) -> Optional[PdsStructElement]:
-    if parent_ptr:
-        parent = PdsStructElement(parent_ptr)
-    else:
-        root_object = struct_tree.GetObject()
-        if root_object is None:
-            return None
-        parent = struct_tree.GetStructElementFromObject(root_object)
-        if parent is None:
-            return None
-
-    if parent.GetChildType(index) != kPdsStructChildElement:
-        return None
-
-    child_object: Optional[PdsObject] = parent.GetChildObject(index)
-    if child_object is None:
-        return None
-
-    return struct_tree.GetStructElementFromObject(child_object)
-
-
-@dataclass
-class _StructTreeEnumContext:
-    struct_tree: PdsStructTree
-    template_query: PdfTemplateQuery
-    overwrite: bool
-    maxwords: int
-    default_language: str
-
-    def enum_proc(self, _doc_ptr: int, parent_ptr: int, index: int, _client_data: int) -> int:
-        struct_element = _resolve_struct_element(self.struct_tree, parent_ptr, index)
-        if struct_element is None:
-            return kEnumResultContinue
-
-        element_info = _format_struct_element_info(struct_element)
-
-        if self.template_query.TestStructElement(struct_element):
-            logger.info("Template test: chosen (%s)", element_info)
-            self._apply_language(struct_element, element_info)
-        else:
-            logger.info("Template test: discarded (%s)", element_info)
-
-        return kEnumResultContinue
-
-    def _apply_language(self, struct_element: PdsStructElement, element_info: str) -> None:
-        present_language: str = struct_element.GetLang()
-        if present_language and not self.overwrite:
-            logger.debug("Skipping element with existing language (%s): %s", present_language, element_info)
-            return
-
-        text: str = struct_element.GetActualText()
-        if not text:
-            text = struct_element.GetText(65535)
-
-        if not text:
-            logger.error("Failed to get text for struct element: %s", element_info)
-            return
-
-        language = detect_language(max_words(text, self.maxwords))
-        if not language:
-            logger.warning(
-                "Failed to detect language for text, using default (%s): %s",
-                self.default_language,
-                text,
-            )
-            language = self.default_language
-
-        struct_element.SetLang(language)
-
-
 class SetTagLanguage(SetLanguage):
     def __init__(
         self,
@@ -151,6 +69,8 @@ class SetTagLanguage(SetLanguage):
         self.maxwords: int = maxwords
         self.overwrite: bool = overwrite
         self.default_language: str = default_language
+        self._struct_tree: Optional[PdsStructTree] = None
+        self._template_query: Optional[PdfTemplateQuery] = None
 
     def set_tag_language(self) -> None:
         """
@@ -187,17 +107,16 @@ class SetTagLanguage(SetLanguage):
             if struct_tree is None:
                 raise PdfixFailedToReadException(pdfix, "Failed to acquire StructTree")
 
-            enum_context = _StructTreeEnumContext(
-                struct_tree=struct_tree,
-                template_query=template_query,
-                overwrite=self.overwrite,
-                maxwords=self.maxwords,
-                default_language=self.default_language,
-            )
-            ensure_enum_struct_tree_argtypes()
-            pdfix_lib = get_pdfix_lib()
-            struct_elem_enum_proc = StructElemEnumProcType(enum_context.enum_proc)
-            pdfix_lib.PdfDocEnumStructTree(doc.obj, None, kEnumNone, struct_elem_enum_proc, None)
+            self._struct_tree = struct_tree
+            self._template_query = template_query
+            try:
+                ensure_enum_struct_tree_argtypes()
+                pdfix_lib = get_pdfix_lib()
+                struct_elem_enum_proc: StructElemEnumProcType = StructElemEnumProcType(self._enum_proc)
+                pdfix_lib.PdfDocEnumStructTree(doc.obj, None, kEnumNone, struct_elem_enum_proc, None)
+            finally:
+                self._struct_tree = None
+                self._template_query = None
 
             # Save document
             with tempfile.NamedTemporaryFile() as temp_file:
@@ -212,3 +131,118 @@ class SetTagLanguage(SetLanguage):
             doc.Close()
 
         pdfix.Destroy()
+
+    def _enum_proc(self, _doc_ptr: int, parent_ptr: int, index: int, _client_data: int) -> int:
+        """
+        Callback invoked for each struct element during struct tree enumeration.
+
+        Args:
+            _doc_ptr (int): Document pointer passed by PDFix SDK (unused).
+            parent_ptr (int): Parent struct element pointer, or 0 for the root.
+            index (int): Child index under the parent.
+            _client_data (int): Client data pointer passed by PDFix SDK (unused).
+
+        Returns:
+            Enumeration result code; always continues to the next element.
+        """
+        struct_element: Optional[PdsStructElement] = self._resolve_struct_element(
+            self._struct_tree, parent_ptr, index
+        )
+        if struct_element is None:
+            return kEnumResultContinue
+
+        element_info: str = self._format_struct_element_info(struct_element)
+
+        if self._template_query.TestStructElement(struct_element):
+            logger.info("Template test: chosen (%s)", element_info)
+            self._apply_language(struct_element, element_info)
+        else:
+            logger.info("Template test: discarded (%s)", element_info)
+
+        return kEnumResultContinue
+
+    def _apply_language(self, struct_element: PdsStructElement, element_info: str) -> None:
+        """
+        Detect language from struct element text and write it to the Lang attribute.
+
+        Args:
+            struct_element (PdsStructElement): Struct element to update.
+            element_info (str): Human-readable element description for logging.
+        """
+        present_language: str = struct_element.GetLang()
+        if present_language and not self.overwrite:
+            logger.debug("Skipping element with existing language (%s): %s", present_language, element_info)
+            return
+
+        text: str = struct_element.GetActualText()
+        if not text:
+            text = struct_element.GetText(65535)
+
+        if not text:
+            logger.error("Failed to get text for struct element: %s", element_info)
+            return
+
+        language: str = detect_language(max_words(text, self.maxwords))
+        if not language:
+            logger.warning(
+                "Failed to detect language for text, using default (%s): %s",
+                self.default_language,
+                text,
+            )
+            language = self.default_language
+
+        struct_element.SetLang(language)
+
+    def _format_struct_element_info(self, struct_element: PdsStructElement) -> str:
+        """
+        Build a short log-friendly description of a struct element.
+
+        Args:
+            struct_element (PdsStructElement): Struct element to describe.
+
+        Returns:
+            String with element type and page number(s).
+        """
+        elem_type: str = struct_element.GetType(False)
+        num_pages: int = struct_element.GetNumPages()
+        if num_pages == 0:
+            return f"type={elem_type}, page=none"
+        if num_pages == 1:
+            return f"type={elem_type}, page={struct_element.GetPageNumber(0)}"
+        page_nums: str = ",".join(str(struct_element.GetPageNumber(i)) for i in range(num_pages))
+        return f"type={elem_type}, pages={page_nums}"
+
+    def _resolve_struct_element(
+        self, struct_tree: PdsStructTree, parent_ptr: int, index: int
+    ) -> Optional[PdsStructElement]:
+        """
+        Resolve a struct element from enumeration parent pointer and child index.
+
+        Args:
+            struct_tree (PdsStructTree): Document struct tree.
+            parent_ptr (int): Parent struct element pointer, or 0 for the root.
+            index (int): Child index under the parent.
+
+        Returns:
+            Resolved struct element, or None if the child is not a struct element.
+        """
+        parent: PdsStructElement
+        if parent_ptr:
+            parent = PdsStructElement(parent_ptr)
+        else:
+            root_object: Optional[PdsObject] = struct_tree.GetObject()
+            if root_object is None:
+                return None
+            root_element: Optional[PdsStructElement] = struct_tree.GetStructElementFromObject(root_object)
+            if root_element is None:
+                return None
+            parent = root_element
+
+        if parent.GetChildType(index) != kPdsStructChildElement:
+            return None
+
+        child_object: Optional[PdsObject] = parent.GetChildObject(index)
+        if child_object is None:
+            return None
+
+        return struct_tree.GetStructElementFromObject(child_object)
