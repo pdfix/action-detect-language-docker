@@ -1,0 +1,25 @@
+{
+    "template": {
+        "tag_update": [
+            {
+                "comment": "Select P (paragraph) tags on the first page only",
+                "query": {
+                    "$and": [
+                        {
+                            "$0_tag_type": {
+                                "$regex": "^P$"
+                            }
+                        },
+                        {
+                            "$page_num": "1"
+                        }
+                    ],
+                    "param": [
+                        "pds_struct_elem"
+                    ]
+                },
+                "statement": "$if"
+            }
+        ]
+    }
+}

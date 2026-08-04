@@ -8,6 +8,7 @@ from pdfixsdk import (
     GetPdfix,
     PdfDoc,
     Pdfix,
+    PdfStructElemEnumProcType,
     PdfTemplateQuery,
     PdsObject,
     PdsStructElement,
@@ -31,13 +32,7 @@ from exceptions import (
 from logger import get_logger
 from set_language import SetLanguage
 from utils import detect_language, max_words
-from utils_sdk import (
-    StructElemEnumProcCallback,
-    StructElemEnumProcType,
-    authorize_sdk,
-    ensure_enum_struct_tree_argtypes,
-    get_pdfix_lib,
-)
+from utils_sdk import authorize_sdk
 
 logger: logging.Logger = get_logger("app_logger")
 
@@ -116,10 +111,7 @@ class SetTagLanguage(SetLanguage):
             self._struct_tree = struct_tree
             self._template_query = template_query
             try:
-                ensure_enum_struct_tree_argtypes()
-                pdfix_lib = get_pdfix_lib()
-                struct_elem_enum_proc: StructElemEnumProcCallback = StructElemEnumProcType(self._enum_proc)
-                pdfix_lib.PdfDocEnumStructTree(doc.obj, None, kEnumNone, struct_elem_enum_proc, None)
+                doc.EnumStructTree(None, kEnumNone, PdfStructElemEnumProcType(self._enum_proc), None)
             finally:
                 self._struct_tree = None
                 self._template_query = None
@@ -161,12 +153,12 @@ class SetTagLanguage(SetLanguage):
             logger.error("Template query is not initialized")
             return kEnumResultContinue
 
-        if self._template_query.TestStructElement(struct_element):
-            logger.info("Template test: chosen (%s)", element_info)
-            self._apply_language(struct_element, element_info)
-        else:
-            logger.info("Template test: discarded (%s)", element_info)
+        if not self._template_query.TestStructElement(struct_element):
+            # logger.info("Template test: discarded (%s)", element_info)
+            return kEnumResultContinue
 
+        # logger.info("Template test: chosen (%s)", element_info)
+        self._apply_language(struct_element, element_info)
         return kEnumResultContinue
 
     def _apply_language(self, struct_element: PdsStructElement, element_info: str) -> None:

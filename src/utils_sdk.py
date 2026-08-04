@@ -1,7 +1,5 @@
-import functools
 import logging
-from ctypes import CFUNCTYPE, c_int, c_void_p
-from typing import Callable, Optional, TypeAlias
+from typing import Optional
 
 from pdfixsdk import Pdfix, PsAccountAuthorization, PsStandardAuthorization
 
@@ -9,49 +7,6 @@ from exceptions import PdfixActivationException, PdfixAuthorizationException
 from logger import get_logger
 
 logger: logging.Logger = get_logger("app_logger")
-
-# Workaround for pdfix-sdk <= 9.1.1: generated bindings declare the callback as c_int.
-StructElemEnumProcType = CFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_void_p)
-PageObjectEnumProcType = CFUNCTYPE(c_int, c_void_p, c_int, c_void_p)
-
-# Mypy cannot treat CFUNCTYPE(...) results as types; use these for annotations.
-StructElemEnumProcCallback: TypeAlias = Callable[..., int]
-PageObjectEnumProcCallback: TypeAlias = Callable[..., int]
-
-
-def get_pdfix_lib():
-    from pdfixsdk.Pdfix import PdfixLib
-
-    if PdfixLib is None:
-        raise RuntimeError("PdfixLib is not initialized")
-    return PdfixLib
-
-
-@functools.lru_cache(maxsize=1)
-def ensure_enum_struct_tree_argtypes() -> None:
-    pdfix_lib = get_pdfix_lib()
-    pdfix_lib.PdfDocEnumStructTree.restype = c_int
-    pdfix_lib.PdfDocEnumStructTree.argtypes = [
-        c_void_p,
-        c_void_p,
-        c_int,
-        StructElemEnumProcType,
-        c_void_p,
-    ]
-
-
-@functools.lru_cache(maxsize=1)
-def ensure_enum_page_objects_argtypes() -> None:
-    pdfix_lib = get_pdfix_lib()
-    pdfix_lib.PdfDocEnumPageObjects.restype = c_int
-    pdfix_lib.PdfDocEnumPageObjects.argtypes = [
-        c_void_p,
-        c_void_p,
-        c_void_p,
-        c_int,
-        PageObjectEnumProcType,
-        c_void_p,
-    ]
 
 
 def authorize_sdk(pdfix: Pdfix, license_name: str, license_key: str) -> None:

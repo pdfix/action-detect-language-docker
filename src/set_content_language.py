@@ -9,6 +9,7 @@ from pdfixsdk import (
     PdfDoc,
     Pdfix,
     PdfPage,
+    PdfPageObjectEnumProcType,
     PdfTemplateQuery,
     PdsContent,
     PdsContentMark,
@@ -19,6 +20,7 @@ from pdfixsdk import (
     kDataFormatJson,
     kEnumForms,
     kEnumResultContinue,
+    kPageContentIsModified,
     kPdsPageForm,
     kPdsPageImage,
     kPdsPagePath,
@@ -37,13 +39,7 @@ from exceptions import (
 from logger import get_logger
 from set_language import SetLanguage
 from utils import detect_language, max_words
-from utils_sdk import (
-    PageObjectEnumProcCallback,
-    PageObjectEnumProcType,
-    authorize_sdk,
-    ensure_enum_page_objects_argtypes,
-    get_pdfix_lib,
-)
+from utils_sdk import authorize_sdk
 
 logger: logging.Logger = get_logger("app_logger")
 
@@ -125,9 +121,7 @@ class SetContentLanguage(SetLanguage):
             self._doc = doc
             self._template_query = template_query
             try:
-                ensure_enum_page_objects_argtypes()
-                pdfix_lib = get_pdfix_lib()
-                page_object_enum_proc: PageObjectEnumProcCallback = PageObjectEnumProcType(self._enum_proc)
+                page_object_enum_proc = PdfPageObjectEnumProcType(self._enum_proc)
 
                 page_count: int = doc.GetNumPages()
                 for page_index in range(page_count):
@@ -142,14 +136,7 @@ class SetContentLanguage(SetLanguage):
                             logger.error("Failed to acquire content for page %s", page_index + 1)
                             continue
 
-                        pdfix_lib.PdfDocEnumPageObjects(
-                            doc.obj,
-                            content.obj,
-                            None,
-                            kEnumForms,
-                            page_object_enum_proc,
-                            None,
-                        )
+                        doc.EnumPageObjects(content, None, kEnumForms, page_object_enum_proc, None)
                     finally:
                         page.Release()
             finally:
@@ -190,10 +177,10 @@ class SetContentLanguage(SetLanguage):
             return kEnumResultContinue
 
         if not self._template_query.TestPageObject(page_object):
-            logger.info("Template test: discarded (%s)", element_info)
+            # logger.info("Template test: discarded (%s)", element_info)
             return kEnumResultContinue
 
-        logger.info("Template test: chosen (%s)", element_info)
+        # logger.info("Template test: chosen (%s)", element_info)
         self._apply_language(page_object, element_info)
         return kEnumResultContinue
 
@@ -236,11 +223,13 @@ class SetContentLanguage(SetLanguage):
 
         if lang_dict is not None:
             lang_dict.PutString("Lang", language)
+            self._mark_content_modified(page_object)
             return
 
         last_tag_dict: Optional[PdsDictionary] = self._get_last_tag_dict(content_mark)
         if last_tag_dict is not None:
             last_tag_dict.PutString("Lang", language)
+            self._mark_content_modified(page_object)
             return
 
         if self._doc is None:
@@ -255,6 +244,24 @@ class SetContentLanguage(SetLanguage):
         span_dict.PutString("Lang", language)
         if not content_mark.AddTag("Span", span_dict, False):
             logger.error("Failed to add Span content mark for page object: %s", element_info)
+            return
+
+        # AddTag notifies and usually sets this; keep explicit for save/release consistency.
+        self._mark_content_modified(page_object)
+
+    def _mark_content_modified(self, page_object: PdsPageObject) -> None:
+        """
+        Mark page content dirty so Lang changes are written on page release / save.
+
+        PutString on an existing content-mark dict does not notify; without
+        kPageContentIsModified, Release/Save keeps the old content stream.
+        """
+        page: Optional[PdfPage] = page_object.GetPage()
+        if page is None:
+            logger.error("Failed to get page for content-mark language update")
+            return
+
+        page.SetFlags(page.GetFlags() | kPageContentIsModified)
 
     def _format_page_object_info(self, page_object: PdsPageObject) -> str:
         """
