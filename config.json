@@ -62,7 +62,6 @@
             "version": "v0.0.0",
             "icon": "language",
             "category": "Metadata",
-            "subtype": "detect_language_tag_to_pdf",
             "local": true,
             "docker": {
                 "name": "pdfix/detect-language",
@@ -142,11 +141,10 @@
         {
             "title": "Set Content Language (LangDetect)",
             "name": "pdfix_detect_content_language_to_pdf_langdetect",
-            "desc": "Automatically detects the language of each filtered tag text and saves the detected language to it in a PDF document [Local]",
+            "desc": "Automatically detects the language of each filtered content text and saves the detected language to it in a PDF document [Local]",
             "version": "v0.0.0",
             "icon": "language",
             "category": "Metadata",
-            "subtype": "detect_language_tag_to_pdf",
             "local": true,
             "docker": {
                 "name": "pdfix/detect-language",
