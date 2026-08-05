@@ -45,7 +45,7 @@ logger: logging.Logger = get_logger("app_logger")
 
 
 class SetContentLanguage(SetLanguage):
-    _OBJECT_TYPE_NAMES: dict[int, str] = {
+    OBJECT_TYPE_NAMES: dict[int, str] = {
         kPdsPageText: "text",
         kPdsPagePath: "path",
         kPdsPageImage: "image",
@@ -85,8 +85,10 @@ class SetContentLanguage(SetLanguage):
         self.maxwords: int = maxwords
         self.overwrite: bool = overwrite
         self.default_language: str = default_language
-        self._doc: Optional[PdfDoc] = None
-        self._template_query: Optional[PdfTemplateQuery] = None
+
+        # Preparation for enumeration and content testing
+        self.document: Optional[PdfDoc] = None
+        self.template_query: Optional[PdfTemplateQuery] = None
 
     def set_content_language(self) -> None:
         """
@@ -118,30 +120,31 @@ class SetContentLanguage(SetLanguage):
                 if not template_query.LoadFromStream(stream, kDataFormatJson):
                     raise PdfixFailedToLoadTemplateException(pdfix, "Failed to load template from stream")
 
-            self._doc = doc
-            self._template_query = template_query
+            self.document = doc
+            self.template_query = template_query
             try:
                 page_object_enum_proc = PdfPageObjectEnumProcType(self._enum_proc)
 
                 page_count: int = doc.GetNumPages()
                 for page_index in range(page_count):
+                    page_number: int = page_index + 1
                     page: Optional[PdfPage] = doc.AcquirePage(page_index)
                     if page is None:
-                        logger.error("Failed to acquire page %s", page_index + 1)
+                        logger.error(f"Failed to acquire page {page_number}")
                         continue
 
                     try:
                         content: Optional[PdsContent] = page.GetContent()
                         if content is None:
-                            logger.error("Failed to acquire content for page %s", page_index + 1)
+                            logger.error(f"Failed to acquire content for page {page_number}")
                             continue
 
                         doc.EnumPageObjects(content, None, kEnumForms, page_object_enum_proc, None)
                     finally:
                         page.Release()
             finally:
-                self._doc = None
-                self._template_query = None
+                self.document = None
+                self.template_query = None
 
             # Save document
             with tempfile.NamedTemporaryFile() as temp_file:
@@ -157,68 +160,63 @@ class SetContentLanguage(SetLanguage):
 
         pdfix.Destroy()
 
-    def _enum_proc(self, page_object_ptr: int, _index: int, _client_data: int) -> int:
+    def _enum_proc(self, page_object_ptr: int, index: int, client_data: int) -> int:
         """
         Callback invoked for each page object during page content enumeration.
 
         Args:
             page_object_ptr (int): Page object pointer passed by PDFix SDK.
-            _index (int): Object index passed by PDFix SDK (unused).
-            _client_data (int): Client data pointer passed by PDFix SDK (unused).
+            index (int): Object index passed by PDFix SDK (unused).
+            client_data (int): Client data pointer passed by PDFix SDK (unused).
 
         Returns:
             Enumeration result code; always continues to the next object.
         """
         page_object: PdsPageObject = PdsPageObject(page_object_ptr)
-        element_info: str = self._format_page_object_info(page_object)
+        page_object_info: str = self._format_page_object_info(page_object)
 
-        if self._template_query is None:
+        if self.template_query is None:
+            # This should never happen so just logging an error is enough
             logger.error("Template query is not initialized")
             return kEnumResultContinue
 
-        if not self._template_query.TestPageObject(page_object):
-            # logger.info("Template test: discarded (%s)", element_info)
+        if not self.template_query.TestPageObject(page_object):
+            # logger.debug("Template test: discarded ({page_object_info})")
             return kEnumResultContinue
 
-        # logger.info("Template test: chosen (%s)", element_info)
-        self._apply_language(page_object, element_info)
+        # logger.debug("Template test: chosen ({page_object_info})")
+        self._apply_language(page_object, page_object_info)
         return kEnumResultContinue
 
-    def _apply_language(self, page_object: PdsPageObject, element_info: str) -> None:
+    def _apply_language(self, page_object: PdsPageObject, page_object_info: str) -> None:
         """
         Detect language from page object text and write it to content-mark Lang.
 
         Args:
             page_object (PdsPageObject): Page object to update.
-            element_info (str): Human-readable object description for logging.
+            page_object_info (str): Page object information in string format.
         """
         content_mark: Optional[PdsContentMark] = page_object.GetContentMark()
         if content_mark is None:
-            logger.debug("Skipping page object without content marks: %s", element_info)
+            # logger.debug(f"Skipping page object without content marks: {page_object_info}")
             return
 
         lang_dict: Optional[PdsDictionary] = self._find_lang_tag_dict(content_mark)
         if lang_dict is not None and not self.overwrite:
-            present_language: str = lang_dict.GetText("Lang")
-            logger.debug(
-                "Skipping page object with existing language (%s): %s",
-                present_language,
-                element_info,
-            )
+            # present_language: str = lang_dict.GetText("Lang")
+            # logger.debug(f"Skipping page object with existing language ({present_language}): {page_object_info}")
             return
 
         text: str = self._get_page_object_text(page_object)
         if not text:
-            logger.error("Failed to get text for page object: %s", element_info)
+            # We do not want to fail the rest of page object processing
+            # so no exception is raised
+            logger.error(f"Failed to get text for page object: {page_object_info}")
             return
 
         language: str = detect_language(max_words(text, self.maxwords))
         if not language:
-            logger.warning(
-                "Failed to detect language for text, using default (%s): %s",
-                self.default_language,
-                text,
-            )
+            # logger.debug(f"Failed to detect language for text, using default ({self.default_language}): {text}")
             language = self.default_language
 
         if lang_dict is not None:
@@ -232,21 +230,26 @@ class SetContentLanguage(SetLanguage):
             self._mark_content_modified(page_object)
             return
 
-        if self._doc is None:
+        if self.document is None:
+            # This should never happen so just logging an error is enough
             logger.error("Document is not initialized")
             return
 
-        span_dict: Optional[PdsDictionary] = self._doc.CreateDictObject(False)
+        span_dict: Optional[PdsDictionary] = self.document.CreateDictObject(False)
         if span_dict is None:
-            logger.error("Failed to create dictionary for page object: %s", element_info)
+            # We do not want to fail the rest of page object processing
+            # so no exception is raised
+            logger.error(f"Failed to create dictionary for page object: {page_object_info}")
             return
 
         span_dict.PutString("Lang", language)
         if not content_mark.AddTag("Span", span_dict, False):
-            logger.error("Failed to add Span content mark for page object: %s", element_info)
+            # We do not want to fail the rest of page object processing
+            # so no exception is raised
+            logger.error(f"Failed to add Span content mark for page object: {page_object_info}")
             return
 
-        # AddTag notifies and usually sets this; keep explicit for save/release consistency.
+        # Mark content as modified so it is saved on document save
         self._mark_content_modified(page_object)
 
     def _mark_content_modified(self, page_object: PdsPageObject) -> None:
@@ -255,9 +258,13 @@ class SetContentLanguage(SetLanguage):
 
         PutString on an existing content-mark dict does not notify; without
         kPageContentIsModified, Release/Save keeps the old content stream.
+
+        Args:
+            page_object (PdsPageObject): Page object to mark as dirty.
         """
         page: Optional[PdfPage] = page_object.GetPage()
         if page is None:
+            # This should never happen so just logging an error is enough
             logger.error("Failed to get page for content-mark language update")
             return
 
@@ -273,11 +280,10 @@ class SetContentLanguage(SetLanguage):
         Returns:
             String with object type and page number.
         """
-        obj_type: str = self._OBJECT_TYPE_NAMES.get(page_object.GetObjectType(), "unknown")
+        object_type: str = self.OBJECT_TYPE_NAMES.get(page_object.GetObjectType(), "unknown")
         page: Optional[PdfPage] = page_object.GetPage()
-        if page is None:
-            return f"type={obj_type}, page=unknown"
-        return f"type={obj_type}, page={page.GetNumber()}"
+        page_number: str = "unknown" if page is None else str(page.GetNumber())
+        return f"type={object_type}, page={page_number}"
 
     def _find_lang_tag_dict(self, content_mark: PdsContentMark) -> Optional[PdsDictionary]:
         """
@@ -289,8 +295,8 @@ class SetContentLanguage(SetLanguage):
         Returns:
             Tag dictionary containing Lang, or None if not found.
         """
-        num_tags: int = content_mark.GetNumTags()
-        for tag_index in range(num_tags - 1, -1, -1):
+        number_of_tags: int = content_mark.GetNumTags()
+        for tag_index in range(number_of_tags - 1, -1, -1):
             tag_dict: Optional[PdsDictionary] = content_mark.GetTagObject(tag_index)
             if tag_dict is not None and tag_dict.Known("Lang"):
                 return tag_dict
@@ -306,10 +312,10 @@ class SetContentLanguage(SetLanguage):
         Returns:
             Last tag dictionary, or None if the content mark has no tags.
         """
-        num_tags: int = content_mark.GetNumTags()
-        if num_tags == 0:
+        number_of_tags: int = content_mark.GetNumTags()
+        if number_of_tags == 0:
             return None
-        return content_mark.GetTagObject(num_tags - 1)
+        return content_mark.GetTagObject(number_of_tags - 1)
 
     def _get_page_object_text(self, page_object: PdsPageObject) -> str:
         """
