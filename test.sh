@@ -55,7 +55,7 @@ else
 fi
 
 info "Test #03: Run language detection to set pdf metadata"
-docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/air_quality.pdf -o $TEMPORARY_DIRECTORY/air_quality.pdf > /dev/null
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE set-document-language -i example/air_quality.pdf -o $TEMPORARY_DIRECTORY/air_quality.pdf > /dev/null
 if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/air_quality.pdf" ]; then
     success "passed"
 else
@@ -63,17 +63,26 @@ else
     EXIT_STATUS=1
 fi
 
-info "Test #04: Run language detection pdf to txt"
-docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/air_quality.pdf -o $TEMPORARY_DIRECTORY/air_quality.txt > /dev/null
-if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/air_quality.txt" ]; then
+info "Test #04: Run language detection on tags"
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE set-tag-language -i example/food_fact_sheet.pdf -o $TEMPORARY_DIRECTORY/food_fact_sheet_tags.pdf --params tests/params_tag.json > /dev/null
+if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/food_fact_sheet_tags.pdf" ]; then
     success "passed"
 else
-    error "language detection to txt failed on example/air_quality.pdf"
+    error "language detection on tags failed on example/food_fact_sheet.pdf"
     EXIT_STATUS=1
 fi
 
-info "Test #05: Run language detection txt to txt"
-docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/language_identification_wikipedia.txt -o $TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt > /dev/null
+info "Test #05: Run language detection on content"
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE set-content-language -i example/air_quality.pdf -o $TEMPORARY_DIRECTORY/air_quality_content.pdf --params tests/params_content.json > /dev/null
+if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/air_quality_content.pdf" ]; then
+    success "passed"
+else
+    error "language detection on content failed on example/air_quality.pdf"
+    EXIT_STATUS=1
+fi
+
+info "Test #06: Run language detection txt to txt"
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE detect_language -i example/language_identification_wikipedia.txt -o $TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt > /dev/null
 if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt" ]; then
     success "passed"
 else
@@ -81,30 +90,11 @@ else
     EXIT_STATUS=1
 fi
 
-# Move these tests to functional tests
-
-# info "Test #06: Run lang-detect on pdf with empty page"
-# docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/empty_page.pdf -o $TEMPORARY_DIRECTORY/empty_page.txt > /dev/null
-# if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/empty_page.txt" ]; then
-#     success "passed"
-# else
-#     error "lang-detect to pdf failed on example/empty_page.pdf"
-#     EXIT_STATUS=1
-# fi
-
-# info "Test #07: Run lang-detect on pdf with numbers"
-# docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE lang-detect -i example/pdfix_6_0_0_0053.pdf -o $TEMPORARY_DIRECTORY/num.txt > /dev/null
-# if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/empty_page.txt" ]; then
-#     success "passed"
-# else
-#     error "lang-detect to pdf failed on example/empty_page.pdf"
-#     EXIT_STATUS=1
-# fi
-
 info "Cleaning up temporary files from tests"
 rm -f $TEMPORARY_DIRECTORY/config.json
 rm -f $TEMPORARY_DIRECTORY/air_quality.pdf
-rm -f $TEMPORARY_DIRECTORY/air_quality.txt
+rm -f $TEMPORARY_DIRECTORY/food_fact_sheet_tags.pdf
+rm -f $TEMPORARY_DIRECTORY/air_quality_content.pdf
 rm -f $TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt
 rmdir $(pwd)/$TEMPORARY_DIRECTORY
 

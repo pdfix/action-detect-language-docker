@@ -211,7 +211,7 @@ class SetContentLanguage(SetLanguage):
         if not text:
             # We do not want to fail the rest of page object processing
             # so no exception is raised
-            logger.error(f"Failed to get text for page object: {page_object_info}")
+            logger.warning(f"Failed to get text for page object: {page_object_info}")
             return
 
         language: str = detect_language(max_words(text, self.maxwords))
@@ -239,14 +239,14 @@ class SetContentLanguage(SetLanguage):
         if span_dict is None:
             # We do not want to fail the rest of page object processing
             # so no exception is raised
-            logger.error(f"Failed to create dictionary for page object: {page_object_info}")
+            logger.warning(f"Failed to create dictionary for page object: {page_object_info}")
             return
 
         span_dict.PutString("Lang", language)
         if not content_mark.AddTag("Span", span_dict, False):
             # We do not want to fail the rest of page object processing
             # so no exception is raised
-            logger.error(f"Failed to add Span content mark for page object: {page_object_info}")
+            logger.warning(f"Failed to add Span content mark for page object: {page_object_info}")
             return
 
         # Mark content as modified so it is saved on document save

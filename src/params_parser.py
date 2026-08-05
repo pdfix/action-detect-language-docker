@@ -31,11 +31,17 @@ class ParamsParser:
                     if isinstance(item, dict):
                         self._parse_dictionary_item(item)
                     else:
-                        logger.error(f"No expecting '{type(item)}' under list for params.")
+                        logger.error(f"Not expecting '{type(item)}' under list for params.")
             else:
                 logger.error(f"Invalid json data: {type(json_data)}")
 
     def _parse_dictionary_item(self, dict_item: dict[Any, Any]) -> None:
+        """
+        Parse a dictionary item.
+
+        Args:
+            dict_item (dict[Any, Any]): Dictionary item to parse.
+        """
         item_name: Optional[str] = None
         item_value: Optional[Any] = None
         for key, value in dict_item.items():

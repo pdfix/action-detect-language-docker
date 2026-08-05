@@ -182,12 +182,13 @@ class SetTagLanguage(SetLanguage):
 
         text: str = struct_element.GetActualText()
         if not text:
-            text = struct_element.GetText(65535)
+            max_characters: int = 65535
+            text = struct_element.GetText(max_characters)
 
         if not text:
             # We do not want to fail the rest of element processing
             # so no exception is raised
-            logger.error(f"Failed to get text for struct element: {element_info}")
+            logger.warning(f"Failed to get text for struct element: {element_info}")
             return
 
         language: str = detect_language(max_words(text, self.maxwords))

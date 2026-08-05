@@ -1,0 +1,15 @@
+[
+    {
+        "title": "Objects",
+        "desc": "Define the objects by the template object_update",
+        "name": "object_types",
+        "type": "object",
+        "value": "^pds_text$",
+        "values": [
+            {
+                "desc": "All page objects",
+                "value": ".*"
+            }
+        ]
+    }
+]
