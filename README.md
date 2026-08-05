@@ -9,6 +9,7 @@ A Docker image that detects the language of PDF documents or text using LangDete
   - [Usage](#usage)
   - [Commands](#commands)
   - [Arguments](#arguments)
+  - [Params JSON](#params-json)
   - [Examples](#examples)
   - [Help \& support](#help--support)
   - [Licenses](#licenses)
@@ -54,7 +55,9 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 
 | Option | Required | Type / expected value | Description |
 |---|:---:|---|---|
+| `--params` | yes | Path to a `.json` file | Tag filter parameters (see [Params JSON](#params-json)) |
 | `--overwrite` | no | Boolean string (default: `false`) | Overwrite already existing language on a tag |
+| `--default-language` | no | Language code (default: `en`) | Language applied when detection fails (e.g. numbers only) |
 
 ### `set-content-language`
 
@@ -62,7 +65,11 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 
 | Option | Required | Type / expected value | Description |
 |---|:---:|---|---|
+| `--params` | yes | Path to a `.json` file | Object filter parameters (see [Params JSON](#params-json)) |
 | `--overwrite` | no | Boolean string (default: `false`) | Overwrite already existing language on content |
+| `--default-language` | no | Language code (default: `en`) | Language applied when detection fails (e.g. numbers only) |
+
+
 
 ### `detect_language`
 
@@ -71,6 +78,62 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 | `--input`, `-i` | yes | Path to an existing `.txt` file, or a raw text string | Source text or file |
 | `--output`, `-o` | yes | Path for output `.txt` file | Output file containing the detected language code |
 | `--maxwords` | no | Integer (default: **100**) | How many words are considered for language detection |
+
+## Params JSON
+
+`--params` points to a JSON array of parameter objects. Each object has at least `name` and `value`; the CLI reads those fields to decide which tags or page objects to process.
+
+### `set-tag-language` (`tag_names`)
+
+`tag_names` is an ECMAScript regular expression matching tag names, or a template `tag_update` object.
+
+Example (`tests/params_tag.json`) — match only `P` tags:
+
+```json
+[
+    {
+        "title": "Tags",
+        "desc": "Specify the tags using a ECMAScript regular expression or define them by template tag_update",
+        "name": "tag_names",
+        "type": "tag",
+        "value": "^P$",
+        "values": [
+            {
+                "desc": "All tags",
+                "value": ".*"
+            }
+        ]
+    }
+]
+```
+
+Use `"value": ".*"` to match all tags.
+
+### `set-content-language` (`object_types`)
+
+`object_types` is an ECMAScript regular expression matching page object types, or a template `object_update` object.
+
+Example (`tests/params_content.json`) — match only text objects:
+
+```json
+[
+    {
+        "title": "Objects",
+        "desc": "Define the objects by the template object_update",
+        "name": "object_types",
+        "type": "object",
+        "value": "^pds_text$",
+        "values": [
+            {
+                "desc": "All page objects",
+                "value": ".*"
+            }
+        ]
+    }
+]
+```
+
+Use `"value": ".*"` to match all page objects.
 
 ## Examples
 
@@ -87,7 +150,8 @@ Set detected language on PDF tags:
 ```bash
 docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
   set-tag-language --name "${LICENSE_NAME}" --key "${LICENSE_KEY}" \
-  --input /data/input.pdf --output /data/output.pdf --maxwords 100 --overwrite true
+  --input /data/input.pdf --output /data/output.pdf --maxwords 100 \
+  --overwrite true --params /data/params_tag.json
 ```
 
 Set detected language on PDF page content:
@@ -95,7 +159,8 @@ Set detected language on PDF page content:
 ```bash
 docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest \
   set-content-language --name "${LICENSE_NAME}" --key "${LICENSE_KEY}" \
-  --input /data/input.pdf --output /data/output.pdf --maxwords 100 --overwrite true
+  --input /data/input.pdf --output /data/output.pdf --maxwords 100 \
+  --overwrite true --params /data/params_content.json
 ```
 
 Detect language from a text file and write the language code to `output.txt`:
