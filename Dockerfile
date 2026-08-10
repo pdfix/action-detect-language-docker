@@ -12,7 +12,6 @@ RUN apt-get update && \
 
 WORKDIR /usr/lang-detect/
 
-
 # Create a virtual environment and install dependencies
 ENV VIRTUAL_ENV=venv
 RUN python3 -m venv venv
@@ -20,10 +19,12 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY requirements.txt /usr/lang-detect/
 RUN pip install --no-cache-dir -r requirements.txt
 
-
 # Copy config and source codes
 COPY config.json /usr/lang-detect/
 COPY src/ /usr/lang-detect/src/
 
+# License
+COPY THIRD_PARTY_LICENSES.md /THIRD_PARTY_LICENSES.md
+LABEL license="https://pdfix.net/terms (PDFix SDK) and Apache-2.0 (langdetect)"
 
 ENTRYPOINT ["/usr/lang-detect/venv/bin/python3", "/usr/lang-detect/src/main.py"]

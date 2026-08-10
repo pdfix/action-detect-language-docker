@@ -177,5 +177,7 @@ For PDFix SDK licensing or issues, contact `support@pdfix.net`.
 ## Licenses
 
 - [PDFix Terms](https://pdfix.net/terms)
+- [langdetect](https://github.com/Mimino666/langdetect) — [Apache 2.0](https://github.com/Mimino666/langdetect/blob/master/LICENSE)
 
 Trial versions of the PDFix SDK may apply watermarks and redact random content in the output PDF.
+
