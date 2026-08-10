@@ -19,8 +19,8 @@ MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage an
 MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please check the usage and try again."
 
 MESSAGE_PDFIX_INITIALIZE: str = "Failed to initialize PDFix SDK."
-MESSAGE_PDFIX_ACTIVATION_FAILED: str = "Failed to activate PDFix SDK acount."
-MESSAGE_PDFIX_AUTHORIZATION_FAILED: str = "Failed to authorize PDFix SDK acount."
+MESSAGE_PDFIX_ACTIVATION_FAILED: str = "Failed to activate PDFix SDK account."
+MESSAGE_PDFIX_AUTHORIZATION_FAILED: str = "Failed to authorize PDFix SDK account."
 MESSAGE_PDFIX_FAILED_TO_READ: str = "Failed to read PDF document."
 MESSAGE_PDFIX_FAILED_TO_OPEN: str = "Failed to open PDF document."
 MESSAGE_PDFIX_FAILED_TO_SAVE: str = "Failed to save PDF document."
@@ -62,7 +62,7 @@ class PdfixException(ExpectedException):
         super().__init__(error_code)
         pdfix_error_code: int = pdfix.GetErrorType()
         pdfix_error: str = str(pdfix.GetError())
-        self.add_note(
+        self._add_note(
             f"[{pdfix_error_code}] [{pdfix_error}]: {message}"
             if len(message) > 0
             else f"[{pdfix_error_code}] {pdfix_error}"
