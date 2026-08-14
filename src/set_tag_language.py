@@ -133,12 +133,12 @@ class SetTagLanguage(SetLanguage):
 
         pdfix.Destroy()
 
-    def _enum_proc(self, documnet_pointer: int, parent_pointer: int, index: int, client_data: int) -> int:
+    def _enum_proc(self, document_pointer: int, parent_pointer: int, index: int, client_data: int) -> int:
         """
         Callback invoked for each struct element during struct tree enumeration.
 
         Args:
-            documnet_pointer (int): Document pointer passed by PDFix SDK (unused).
+            document_pointer (int): Document pointer passed by PDFix SDK (unused).
             parent_pointer (int): Parent struct element pointer, or 0 for the root.
             index (int): Child index under the parent.
             client_data (int): Client data pointer passed by PDFix SDK (unused).
