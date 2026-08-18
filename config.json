@@ -258,6 +258,14 @@
                     "desc": "How many words are considered for language detection",
                     "type": "int",
                     "value": "100"
+                },
+                {
+                    "title": "Overwrite",
+                    "name": "overwrite",
+                    "desc": "Replace the language if it exists",
+                    "flags": 128,
+                    "type": "bool",
+                    "value": false
                 }
             ],
             "errors": {
