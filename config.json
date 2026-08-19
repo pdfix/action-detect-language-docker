@@ -67,7 +67,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\" --default-language \"${default_language}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-tag-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\" --default-language \"${default_language}\" --params \"${params}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -150,7 +150,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-content-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\" --default-language \"${default_language}\"",
+            "program": "docker run -v ${working_directory}:/data -w /data --rm pdfix/detect-language:latest set-content-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\" --default-language \"${default_language}\" --params \"${params}\"",
             "args": [
                 {
                     "name": "input_pdf",
