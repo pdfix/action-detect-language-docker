@@ -15,6 +15,7 @@ from exceptions import (
     EC_ARG_GENERAL,
     MESSAGE_ARG_GENERAL,
     ArgumentException,
+    ArgumentInputNotTxtException,
     ArgumentOutputFolderNotExistsException,
     ExpectedException,
     InvalidRegexOrTemplateException,
@@ -74,9 +75,7 @@ def set_arguments(
                     help="Language applied when detection fails (e.g. numbers only). Defaults to en.",
                 )
             case "input":
-                parser.add_argument(
-                    "--input", "-i", type=str, required=True, help="The input PDF or TXT file or text to detect."
-                )
+                parser.add_argument("--input", "-i", type=str, required=True, help="The input PDF or TXT file.")
             case "key":
                 parser.add_argument("--key", type=str, default="", nargs="?", help="PDFix license key.")
             case "maxwords":
@@ -285,15 +284,18 @@ def set_content_language(
 
 def run_detect_language_subcommand(args) -> None:
     check_output_folder(args.output)
+    input_path: Path = Path(args.input)
+    if input_path.suffix.lower() != ".txt" or not input_path.is_file():
+        raise ArgumentInputNotTxtException(args.input)
     detect_language(args.input, args.output, args.maxwords)
 
 
 def detect_language(input_path: str, output_path: str, maxwords: int) -> None:
     """
-    Detect language from a text file or input and write it to a text file.
+    Detect language from a text file and write it to a text file.
 
     Args:
-        input_path (string): Path to the TXT file or input.
+        input_path (string): Path to the TXT file.
         output_path (string): Path to save the extracted text.
         maxwords (int): How many words are considered for language detection.
     """
@@ -356,7 +358,7 @@ def main() -> None:  # noqa: D103
 
     # Detect language subparser
     detect_language_subparser = subparsers.add_parser(
-        "detect-language", help="Extract text from a text file or input and write it to a text file."
+        "detect-language", help="Detect language from a TXT file and write the language code to a TXT file."
     )
     set_arguments(
         detect_language_subparser,

@@ -31,7 +31,7 @@ docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest <command
 - `set-document-language`: Detect language from a PDF and set it in document metadata (PDF → PDF)
 - `set-tag-language`: Detect language for filtered tags and save it on each tag (PDF → PDF)
 - `set-content-language`: Detect language for filtered page content and save it as marked content (PDF → PDF)
-- `detect-language`: Detect language from a TXT file or raw text string and write the language code to a TXT file (TXT → TXT; text → TXT)
+- `detect-language`: Detect language from a TXT file and write the language code to a TXT file (TXT → TXT)
 
 ## Arguments
 
@@ -75,7 +75,7 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 
 | Option | Required | Type / expected value | Description |
 |---|:---:|---|---|
-| `--input`, `-i` | yes | Path to an existing `.txt` file, or a raw text string | Source text or file |
+| `--input`, `-i` | yes | Path to an existing `.txt` file | Source text file |
 | `--output`, `-o` | yes | Path for output `.txt` file | Output file containing the detected language code |
 | `--maxwords` | no | Integer (default: **100**) | How many words are considered for language detection |
 
