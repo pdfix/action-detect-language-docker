@@ -142,7 +142,7 @@ def set_document_language(
 def run_set_tag_language_subcommand(args) -> None:
     params_parser = ParamsParser(args.params)
     params_parser.parse()
-    tag_names: Any = params_parser.params["tag_names"]
+    tag_names: Any = params_parser.get("tag_names")
     if isinstance(tag_names, str):
         regex_pattern: str = tag_names
         set_tag_language(
@@ -206,7 +206,7 @@ def set_tag_language(
 def run_set_content_language_subcommand(args) -> None:
     params_parser = ParamsParser(args.params)
     params_parser.parse()
-    object_types: Any = params_parser.params["object_types"]
+    object_types: Any = params_parser.get("object_types")
     if isinstance(object_types, str):
         regex_pattern: str = object_types
         set_content_language(
