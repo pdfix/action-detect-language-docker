@@ -32,7 +32,7 @@ class DetectLanguage:
         # @KA:logic How the text file is detected
         # @KA:desc The first **Max Words** words of the whole file are detected together and only the
         # language code is written to the output file.
-        # @KA:problem "No language was detected in the text." (error 31)
+        # @KA:problem "No language was detected in the text." (error 30)
         # @KA:solution The file has fewer than 8 words, contains only numbers or symbols, or **Max
         # Words** is lower than 8. No output file is created.
         language: str = detect_language(max_words(all_text, self.maxwords))

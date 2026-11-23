@@ -15,8 +15,8 @@ EC_PDFIX_FAILED_TO_SAVE: int = 25
 EC_PDFIX_FAILED_TO_SAVE_LANG: int = 26
 EC_PDFIX_FAILED_TO_LOAD_TEMPLATE: int = 27
 
-EC_FAILED_TO_DETECT_LANG: int = 31
-EC_PDF_NOT_TAGGED: int = 32
+EC_FAILED_TO_DETECT_LANG: int = 30
+EC_PDF_NOT_TAGGED: int = 31
 
 MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage and try again."
 MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please check the usage and try again."

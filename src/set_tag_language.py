@@ -113,7 +113,7 @@ class SetTagLanguage(SetLanguage):
             # @KA:action pdfix_detect_tag_language_to_pdf_langdetect
             # @KA:logic Tagged PDF needed
             # @KA:desc The language is written to tags, so the PDF must have a tag tree.
-            # @KA:problem "PDF document is not tagged." (error 32)
+            # @KA:problem "PDF document is not tagged." (error 31)
             # @KA:solution Tag the PDF first, for example with **AutoTag (PDFix)**, then run the action
             # again. To store the language without tags use **Set Content Language (LangDetect)**.
             struct_tree: Optional[PdsStructTree] = doc.GetStructTree()

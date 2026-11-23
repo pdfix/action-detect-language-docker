@@ -110,7 +110,7 @@ class SetDocumentLanguage(SetLanguage):
         # @KA:desc The first **Max Words** words of every page are detected separately. Pages with too
         # little text for a reliable result are left out, and the language found on most of the other
         # pages becomes the document language.
-        # @KA:problem "No language was detected in the text." (error 31)
+        # @KA:problem "No language was detected in the text." (error 30)
         # @KA:solution No page has enough text for a reliable detection (at least 8 words). The PDF may
         # be a scan without a text layer (run OCR first), contain only numbers, or **Max Words** is
         # lower than 8. No output PDF is created.
