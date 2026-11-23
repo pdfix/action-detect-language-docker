@@ -111,9 +111,9 @@ class SetDocumentLanguage(SetLanguage):
         # little text for a reliable result are left out, and the language found on most of the other
         # pages becomes the document language.
         # @KA:problem "No language was detected in the text." (error 30)
-        # @KA:solution No page has enough text for a reliable detection (at least 8 words). The PDF may
+        # @KA:solution No page has enough text for a reliable detection (at least 3 words). The PDF may
         # be a scan without a text layer (run OCR first), contain only numbers, or **Max Words** is
-        # lower than 8. No output PDF is created.
+        # lower than 3. No output PDF is created.
         pages_words: list[list[str]] = self._gather_words_from_each_page(pdfix, doc, self.maxwords)
         pages: list[str] = [" ".join(page) for page in pages_words]
 

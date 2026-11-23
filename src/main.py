@@ -85,8 +85,8 @@ def set_arguments(
                 # @KA:param max_words
                 # @KA:desc How many words are used for detection (default 100): from the start of each
                 # page for the document language, of each tag, of each text object, or of the text
-                # file. More words give a more reliable result but take longer. At least 8 words are
-                # needed for any detection, so values below 8 make every detection fail.
+                # file. More words give a more reliable result but take longer. At least 3 words are
+                # needed for any detection, so values below 3 make every detection fail.
                 parser.add_argument(
                     "--maxwords", type=int, default=100, help="How many words are considered for language detection."
                 )

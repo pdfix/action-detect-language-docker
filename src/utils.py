@@ -26,7 +26,7 @@ def detect_language(text: str) -> str:
     # @KA:logic Reliable language detection
     # @KA:desc Language is detected by LangDetect, which knows 55 languages and returns the main
     # language code only, for example `en`, not `en-GB`. A result is used only when the text has at
-    # least 8 words and the detection is at least 90 % certain; shorter texts are often detected as a
+    # least 3 words and the detection is at least 90 % certain; shorter texts are often detected as a
     # wrong language. Text made only of numbers or symbols has no language. The same text always gives
     # the same result.
     # @KA:problem Similar languages are mixed up, for example Czech and Slovak.
@@ -79,6 +79,6 @@ def resolve_default_language(user_language: str, document_language: str) -> str:
     # used, and `en` when the document has no language. Enter a language code such as `de` to use it
     # instead.
     # @KA:problem A short passage in another language got the document language.
-    # @KA:solution The passage has fewer than 8 words, so it cannot be detected reliably. Set the
+    # @KA:solution The passage has fewer than 3 words, so it cannot be detected reliably. Set the
     # language of that tag manually in PDFix Desktop.
     return user_language or document_language or FALLBACK_LANGUAGE

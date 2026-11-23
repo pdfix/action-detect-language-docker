@@ -61,7 +61,7 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 |---|:---:|---|---|
 | `--params` | yes | Path to a `.json` file | Tag filter parameters (see [Params JSON](#params-json)) |
 | `--overwrite` | no | Boolean string (default: `false`) | Overwrite already existing language on a tag |
-| `--default-language` | no | Language code (default: document language, else `en`) | Language applied when detection is not reliable (fewer than 8 words, numbers only) |
+| `--default-language` | no | Language code (default: document language, else `en`) | Language applied when detection is not reliable (fewer than 3 words, numbers only) |
 
 ### `set-content-language`
 
@@ -71,7 +71,7 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 |---|:---:|---|---|
 | `--params` | yes | Path to a `.json` file | Object filter parameters (see [Params JSON](#params-json)) |
 | `--overwrite` | no | Boolean string (default: `false`) | Overwrite already existing language on content |
-| `--default-language` | no | Language code (default: document language, else `en`) | Language applied when detection is not reliable (fewer than 8 words, numbers only) |
+| `--default-language` | no | Language code (default: document language, else `en`) | Language applied when detection is not reliable (fewer than 3 words, numbers only) |
 
 
 
