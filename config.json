@@ -42,7 +42,6 @@
             ],
             "errors": {
                 "10": "Failed to parse arguments. Please check the usage and try again.",
-                "11": "Invalid regex or template. Please check the usage and try again.",
                 "13": "Output folder does not exist.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK account.",
