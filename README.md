@@ -47,7 +47,11 @@ docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest <command
 
 ### `set-document-language`
 
-Uses the [Common (PDF commands)](#common-pdf-commands) arguments.
+Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
+
+| Option | Required | Type / expected value | Description |
+|---|:---:|---|---|
+| `--overwrite` | no | Boolean string (default: `true`) | Overwrite already existing document language |
 
 ### `set-tag-language`
 

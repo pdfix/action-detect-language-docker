@@ -22,7 +22,9 @@ logger: logging.Logger = get_logger("app_logger")
 
 
 class SetDocumentLanguage(SetLanguage):
-    def __init__(self, license_name: str, license_key: str, input_path: str, output_path: str, maxwords: int) -> None:
+    def __init__(
+        self, license_name: str, license_key: str, input_path: str, output_path: str, maxwords: int, overwrite: bool
+    ) -> None:
         """
         Initialize class for setting document metadata on a PDF document.
 
@@ -32,12 +34,14 @@ class SetDocumentLanguage(SetLanguage):
             input_path (string): Path to the PDF document.
             output_path (string): Path to save the PDF document.
             maxwords (int): How many words are considered for language detection.
+            overwrite (bool): Whether to overwrite already existing document language.
         """
         self.license_name: str = license_name
         self.license_key: str = license_key
         self.input_path: str = input_path
         self.output_path: str = output_path
         self.maxwords: int = maxwords
+        self.overwrite: bool = overwrite
 
     def set_document_language(self) -> None:
         """
@@ -54,30 +58,16 @@ class SetDocumentLanguage(SetLanguage):
             raise PdfixFailedToOpenException(pdfix, self.input_path)
 
         try:
-            # Gather words from each page
-            pages_words: list[list[str]] = self._gather_words_from_each_page(pdfix, doc, self.maxwords)
-            pages: list[str] = [" ".join(page) for page in pages_words]
+            present_language: str = doc.GetLang()
+            if present_language and not self.overwrite:
+                logger.info(f"Document already has language {present_language}, keeping it")
+            else:
+                detected_language: str = self._detect_document_language(pdfix, doc)
+                logger.info(f"Detected language: {detected_language}")
 
-            # Detect languages
-            languages: list[str] = []
-            for text in pages:
-                language: str = detect_language(text)
-                if language:
-                    languages.append(language)
-
-            # Pick most used language
-            language_counter: Counter[str] = Counter[str](languages)
-            most_used_langugage: list[tuple[str, int]] = language_counter.most_common(1)
-            detected_language: str = most_used_langugage[0][0] if most_used_langugage else ""
-
-            if not detected_language:
-                raise FailToDetectLangException()
-
-            logger.info(f"Detected language: {detected_language}")
-
-            # Set language to document metadata
-            if not doc.SetLang(detected_language):
-                raise PdfixFailedToSaveLanguageException(pdfix)
+                # Set language to document metadata
+                if not doc.SetLang(detected_language):
+                    raise PdfixFailedToSaveLanguageException(pdfix)
 
             # Save document
             with tempfile.NamedTemporaryFile() as temp_file:
@@ -91,3 +81,33 @@ class SetDocumentLanguage(SetLanguage):
         finally:
             doc.Close()
         pdfix.Destroy()
+
+    def _detect_document_language(self, pdfix: Pdfix, doc: PdfDoc) -> str:
+        """
+        Detect language of each page and pick the most used one.
+
+        Args:
+            pdfix (Pdfix): The PDFix instance.
+            doc (PdfDoc): The document to detect language for.
+
+        Returns:
+            Detected language.
+        """
+        # Gather words from each page
+        pages_words: list[list[str]] = self._gather_words_from_each_page(pdfix, doc, self.maxwords)
+        pages: list[str] = [" ".join(page) for page in pages_words]
+
+        # Detect languages
+        languages: list[str] = []
+        for text in pages:
+            language: str = detect_language(text)
+            if language:
+                languages.append(language)
+
+        # Pick most used language
+        language_counter: Counter[str] = Counter[str](languages)
+        most_used_language: list[tuple[str, int]] = language_counter.most_common(1)
+        if not most_used_language:
+            raise FailToDetectLangException()
+
+        return most_used_language[0][0]

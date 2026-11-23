@@ -14,7 +14,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v \"${working_directory}:/data\" -w /data --rm pdfix/detect-language:latest set-document-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\"",
+            "program": "docker run -v \"${working_directory}:/data\" -w /data --rm pdfix/detect-language:latest set-document-language --name \"${license_name}\" --key \"${license_key}\" -i \"/data/${input_pdf}\" -o \"/data/${output_pdf}\" --maxwords \"${max_words}\" --overwrite \"${overwrite}\"",
             "args": [
                 {
                     "name": "input_pdf",
@@ -38,6 +38,13 @@
                     "desc": "How many words are considered for language detection",
                     "type": "int",
                     "value": "100"
+                },
+                {
+                    "title": "Overwrite",
+                    "name": "overwrite",
+                    "desc": "Overwrite already existing document language",
+                    "type": "bool",
+                    "value": true
                 }
             ],
             "errors": {

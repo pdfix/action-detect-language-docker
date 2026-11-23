@@ -133,11 +133,11 @@ def get_pdfix_config(path: Optional[str]) -> None:
 
 def run_set_document_language_subcommand(args) -> None:
     check_output_folder(args.output)
-    set_document_language(args.input, args.output, args.name, args.key, args.maxwords)
+    set_document_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
 
 
 def set_document_language(
-    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int
+    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int, overwrite: bool
 ) -> None:
     """
     Set language to document metadata on a PDF document.
@@ -148,8 +148,9 @@ def set_document_language(
         license_name (string): Pdfix sdk license name (e-mail).
         license_key (string): Pdfix sdk license key.
         maxwords (int): How many words are considered for language detection.
+        overwrite (bool): Whether to overwrite already existing document language.
     """
-    set_document_language = SetDocumentLanguage(license_name, license_key, input_path, output_path, maxwords)
+    set_document_language = SetDocumentLanguage(license_name, license_key, input_path, output_path, maxwords, overwrite)
     set_document_language.set_document_language()
 
 
@@ -327,11 +328,12 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_document_language_subparser,
-        ["name", "key", "input", "output", "maxwords"],
+        ["name", "key", "input", "output", "maxwords", "overwrite"],
         True,
         "The PDF document.",
     )
-    set_document_language_subparser.set_defaults(func=run_set_document_language_subcommand)
+    # Document language is replaced by default
+    set_document_language_subparser.set_defaults(func=run_set_document_language_subcommand, overwrite=True)
 
     # PDF set tag language subparser
     set_tag_language_subparser = subparsers.add_parser(
