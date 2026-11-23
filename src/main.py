@@ -15,6 +15,7 @@ from exceptions import (
     EC_ARG_GENERAL,
     MESSAGE_ARG_GENERAL,
     ArgumentException,
+    ArgumentOutputFolderNotExistsException,
     ExpectedException,
     InvalidRegexOrTemplateException,
 )
@@ -96,6 +97,18 @@ def set_arguments(
                 )
 
 
+def check_output_folder(output_path: str) -> None:
+    """
+    Check that the folder for the output file exists before any processing.
+
+    Args:
+        output_path (str): Path to the output file.
+    """
+    output_folder: Path = Path(output_path).resolve().parent
+    if not output_folder.is_dir():
+        raise ArgumentOutputFolderNotExistsException(output_folder.as_posix())
+
+
 def run_config_subcommand(args) -> None:
     get_pdfix_config(args.output)
 
@@ -119,6 +132,7 @@ def get_pdfix_config(path: Optional[str]) -> None:
 
 
 def run_set_document_language_subcommand(args) -> None:
+    check_output_folder(args.output)
     set_document_language(args.input, args.output, args.name, args.key, args.maxwords)
 
 
@@ -140,6 +154,7 @@ def set_document_language(
 
 
 def run_set_tag_language_subcommand(args) -> None:
+    check_output_folder(args.output)
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     tag_names: Any = params_parser.get("tag_names")
@@ -204,6 +219,7 @@ def set_tag_language(
 
 
 def run_set_content_language_subcommand(args) -> None:
+    check_output_folder(args.output)
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     object_types: Any = params_parser.get("object_types")
@@ -268,6 +284,7 @@ def set_content_language(
 
 
 def run_detect_language_subcommand(args) -> None:
+    check_output_folder(args.output)
     detect_language(args.input, args.output, args.maxwords)
 
 

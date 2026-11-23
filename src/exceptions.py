@@ -3,6 +3,7 @@ from pdfixsdk import Pdfix
 EC_ARG_GENERAL: int = 10
 EC_ARG_INVALID_REGEX_OR_TEMPLATE: int = 11
 EC_ARG_PARAMS: int = 12
+EC_ARG_OUTPUT_FOLDER_NOT_EXISTS: int = 13
 
 EC_PDFIX_INITIALIZE: int = 20
 EC_PDFIX_ACTIVATION_FAILED: int = 21
@@ -18,6 +19,7 @@ EC_FAILED_TO_DETECT_LANG: int = 31
 MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage and try again."
 MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please check the usage and try again."
 MESSAGE_ARG_PARAMS: str = "Missing or invalid parameters."
+MESSAGE_ARG_OUTPUT_FOLDER_NOT_EXISTS: str = "Output folder does not exist."
 
 MESSAGE_PDFIX_INITIALIZE: str = "Failed to initialize PDFix SDK."
 MESSAGE_PDFIX_ACTIVATION_FAILED: str = "Failed to activate PDFix SDK account."
@@ -54,6 +56,11 @@ class InvalidRegexOrTemplateException(ArgumentException):
 class ArgumentParamsException(ArgumentException):
     def __init__(self, detail: str) -> None:
         super().__init__(f"{MESSAGE_ARG_PARAMS} {detail}", EC_ARG_PARAMS)
+
+
+class ArgumentOutputFolderNotExistsException(ArgumentException):
+    def __init__(self, path: str) -> None:
+        super().__init__(f"{MESSAGE_ARG_OUTPUT_FOLDER_NOT_EXISTS} {path}", EC_ARG_OUTPUT_FOLDER_NOT_EXISTS)
 
 
 class PdfixInitializeException(ExpectedException):
