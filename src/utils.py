@@ -21,17 +21,6 @@ def detect_language(text: str) -> str:
     Returns:
         Detected language or empty string when detection is not reliable.
     """
-    # @KA:action pdfix_detect_pdf_language_langdetect pdfix_detect_tag_language_to_pdf_langdetect
-    # pdfix_detect_content_language_to_pdf_langdetect pdfix_detect_txt_language_to_text_langdetect
-    # @KA:logic Reliable language detection
-    # @KA:desc Language is detected by LangDetect, which knows 55 languages and returns the main
-    # language code only, for example `en`, not `en-GB`. A result is used only when the text has at
-    # least 3 words and the detection is at least 90 % certain; shorter texts are often detected as a
-    # wrong language. Text made only of numbers or symbols has no language. The same text always gives
-    # the same result.
-    # @KA:problem Similar languages are mixed up, for example Czech and Slovak.
-    # @KA:solution Closely related languages need longer text. Increase **Max Words**, or set the
-    # language of such passages manually.
     if len(text.split()) < DETECTION_MIN_WORDS:
         return ""
 
@@ -72,13 +61,4 @@ def resolve_default_language(user_language: str, document_language: str) -> str:
     Returns:
         User language, else document language, else fallback language.
     """
-    # @KA:action pdfix_detect_tag_language_to_pdf_langdetect pdfix_detect_content_language_to_pdf_langdetect
-    # @KA:param default_language
-    # @KA:desc Language written to text that is too short or too uncertain for a reliable detection,
-    # for example headings, table cells or numbers. When empty (default), the document language is
-    # used, and `en` when the document has no language. Enter a language code such as `de` to use it
-    # instead.
-    # @KA:problem A short passage in another language got the document language.
-    # @KA:solution The passage has fewer than 3 words, so it cannot be detected reliably. Set the
-    # language of that tag manually in PDFix Desktop.
     return user_language or document_language or FALLBACK_LANGUAGE

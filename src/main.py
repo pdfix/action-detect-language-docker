@@ -81,13 +81,6 @@ def set_arguments(
             case "key":
                 parser.add_argument("--key", type=str, default="", nargs="?", help="PDFix license key.")
             case "maxwords":
-                # @KA:action pdfix_detect_pdf_language_langdetect pdfix_detect_tag_language_to_pdf_langdetect
-                # pdfix_detect_content_language_to_pdf_langdetect pdfix_detect_txt_language_to_text_langdetect
-                # @KA:param max_words
-                # @KA:desc How many words are used for detection (default 100): from the start of each
-                # page for the document language, of each tag, of each text object, or of the text
-                # file. More words give a more reliable result but take longer. At least 3 words are
-                # needed for any detection, so values below 3 make every detection fail.
                 parser.add_argument(
                     "--maxwords", type=int, default=100, help="How many words are considered for language detection."
                 )
@@ -113,20 +106,6 @@ def check_output_file(output_path: str, extension: str) -> None:
         output_path (str): Path to the output file.
         extension (str): Expected extension of the output file, for example ".pdf".
     """
-    # @KA:action pdfix_detect_pdf_language_langdetect pdfix_detect_tag_language_to_pdf_langdetect
-    # pdfix_detect_content_language_to_pdf_langdetect
-    # @KA:param output_pdf
-    # @KA:desc Where the PDF with the language is saved. The folder must already exist; an existing
-    # file with the same name is overwritten. The folder is checked before the document is processed.
-    # @KA:problem "Output folder does not exist." (error 13)
-    # @KA:solution Create the folder shown in the message or select another output file.
-    #
-    # @KA:action pdfix_detect_txt_language_to_text_langdetect
-    # @KA:param output_txt
-    # @KA:desc Text file where the detected language code is saved, for example `en`. The file holds
-    # only the code. The folder must already exist; an existing file is overwritten.
-    # @KA:problem "Output folder does not exist." (error 13)
-    # @KA:solution Create the folder shown in the message or select another output file.
     if Path(output_path).suffix.lower() != extension:
         raise ArgumentOutputExtensionException(extension)
 
@@ -158,19 +137,62 @@ def get_pdfix_config(path: Optional[str]) -> None:
 
 
 # @KA:action pdfix_detect_pdf_language_langdetect
-# @KA:desc Detects the main language of the PDF from its text and saves it as the document language,
-# the language PDF readers and screen readers use for the whole document. The text of every page is
-# checked and the language found on most pages wins. The input file is not changed; the PDF with the
-# language is saved as the output file.
-# @KA:context Run on the **whole document** when the document language is missing or wrong, a common
-# accessibility (PDF/UA, WCAG) failure. Detection runs on your computer with LangDetect; no text is
-# sent anywhere. The PDF must contain real text; scanned pages need OCR first. To mark passages
-# written in another language, run **Set Tag Language (LangDetect)** afterwards.
+# @KA:desc Detects the main language of the PDF from its text and saves it as the document language, the language PDF
+# readers and screen readers use for the whole document. The text of every page is checked and the language found on
+# most pages wins. The input file is not changed; the PDF with the language is saved as the output file.
+# @KA:context Run on the **whole document** when the document language is missing or wrong, a common accessibility
+# (PDF/UA, WCAG) failure. Detection runs on your computer with LangDetect; no text is sent anywhere. The PDF must
+# contain real text; scanned pages need OCR first. To mark passages written in another language, run **Set Tag Language
+# (LangDetect)** afterwards.
+# @KA:param input_pdf
+# @KA:desc PDF document to process. It is only read, never changed.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 5" (error 24)
+# @KA:solution The input file does not exist. Select the file again.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
+# @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
+# @KA:solution The PDF is password-protected. Remove the password and run the action again.
+#
+# @KA:param output_pdf
+# @KA:desc Where the PDF with the language is saved, a file with the `.pdf` extension. The folder must already exist; an
+# existing file with the same name is overwritten. Both are checked before the document is processed.
+# @KA:problem "Output file must be PDF document." (error 15)
+# @KA:solution Select an output file with the `.pdf` extension.
+# @KA:problem "Output folder does not exist." (error 13)
+# @KA:solution Create the folder shown in the message or select another output file.
+#
+# @KA:param max_words
+# @KA:desc How many words are used for detection (default 100): from the start of each page. More words give a more
+# reliable result but take longer. At least 3 words are needed for any detection, so values below 3 make every detection
+# fail.
+#
+# @KA:param overwrite
+# @KA:desc When on (default), the detected language replaces the language the document already has. When off, a document
+# that already has a language is saved unchanged and no detection runs; only documents without a language get one.
+#
+# @KA:logic How the document language is chosen
+# @KA:desc The first **Max Words** words of every page are detected separately. Pages with too little text for a
+# reliable result are left out, and the language found on most of the other pages becomes the document language.
+# @KA:problem "No language was detected in the text." (error 30)
+# @KA:solution No page has enough text for a reliable detection (at least 3 words). The PDF may be a scan without a text
+# layer (run OCR first), contain only numbers, or **Max Words** is lower than 3. No output PDF is created.
+#
+# @KA:logic Reliable language detection
+# @KA:desc Language is detected by LangDetect, which knows 55 languages and returns the main language code only, for
+# example `en`, not `en-GB`. A result is used only when the text has at least 3 words and the detection is at least 90 %
+# certain. Short texts of a few words can still be detected as a wrong language; longer text gives a more reliable
+# result. Text made only of numbers or symbols has no language. The same text always gives the same result.
+# @KA:problem Similar languages are mixed up, for example Czech and Slovak.
+# @KA:solution Closely related languages need longer text. Increase **Max Words**, or set the language of such passages
+# manually.
+#
+# @KA:logic PDFix license
+# @KA:desc The license name and key from PDFix Desktop are used to authorize PDFix SDK. Without a license the trial is
+# used, which adds watermarks and may redact random content in the output PDF, and the redacted text can change the
+# detected language.
+# @KA:problem "Failed to authorize PDFix SDK account." (error 22) or "Failed to activate PDFix SDK account." (error 21)
+# @KA:solution The license name or key is not valid. Check the license in PDFix Desktop settings.
 def run_set_document_language_subcommand(args) -> None:
-    # @KA:param overwrite
-    # @KA:desc When on (default), the detected language replaces the language the document already
-    # has. When off, a document that already has a language is saved unchanged and no detection runs;
-    # only documents without a language get one.
     check_output_file(args.output, ".pdf")
     set_document_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
 
@@ -194,30 +216,86 @@ def set_document_language(
 
 
 # @KA:action pdfix_detect_tag_language_to_pdf_langdetect
-# @KA:desc Detects the language of the text of each selected tag and saves it on the tag, so screen
-# readers read passages in another language with the right pronunciation. Tags are selected by the
-# **Tags** parameter. Text that is too short for a reliable detection gets the **Default Language**.
-# The input file is not changed; the PDF with the languages is saved as the output file.
-# @KA:context Run on a **tagged** PDF that contains passages in more than one language, after the
-# document language is set (for example by **Set Document Language (LangDetect)**). Select tags with
-# longer text, such as paragraphs (`^P$`); headings and table cells are often too short to detect.
-# Detection runs on your computer with LangDetect; no text is sent anywhere.
+# @KA:desc Detects the language of the text of each selected tag and saves it on the tag, so screen readers read
+# passages in another language with the right pronunciation. Tags are selected by the **Tags** parameter. Text that is
+# too short for a reliable detection gets the **Default Language**. The input file is not changed; the PDF with the
+# languages is saved as the output file.
+# @KA:context Run on a **tagged** PDF that contains passages in more than one language, after the document language is
+# set (for example by **Set Document Language (LangDetect)**). Select tags with longer text, such as paragraphs (`^P$`);
+# very short tags are often detected as a wrong language. Detection runs on your computer with LangDetect; no text is
+# sent anywhere.
+# @KA:param input_pdf
+# @KA:desc PDF document to process. It is only read, never changed.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 5" (error 24)
+# @KA:solution The input file does not exist. Select the file again.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
+# @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
+# @KA:solution The PDF is password-protected. Remove the password and run the action again.
+#
+# @KA:param output_pdf
+# @KA:desc Where the PDF with the language is saved, a file with the `.pdf` extension. The folder must already exist; an
+# existing file with the same name is overwritten. Both are checked before the document is processed.
+# @KA:problem "Output file must be PDF document." (error 15)
+# @KA:solution Select an output file with the `.pdf` extension.
+# @KA:problem "Output folder does not exist." (error 13)
+# @KA:solution Create the folder shown in the message or select another output file.
+#
+# @KA:param max_words
+# @KA:desc How many words are used for detection (default 100): from the start of the text of each tag. More words give
+# a more reliable result but take longer. At least 3 words are needed for any detection, so values below 3 make every
+# detection fail.
+#
+# @KA:param overwrite
+# @KA:desc When off (default), selected tags that already have a language keep it. When on, their language is detected
+# again and replaced.
+#
+# @KA:param default_language
+# @KA:desc Language written to text that is too short or too uncertain for a reliable detection, for example single
+# words or numbers. When empty (default), the document language is used, and `en` when the document has no language.
+# Enter a language code such as `de` to use it instead.
+# @KA:problem A short passage in another language got the document language.
+# @KA:solution The passage has fewer than 3 words or the detection was uncertain. Set the language of that tag manually.
+#
+# @KA:param tag_names
+# @KA:desc Selects the tags that get a language: a regular expression of tag types (for example `^P$` for paragraphs,
+# `.*` for all tags) or a template with a `tag_update` query. The regular expression matches both the tag type and the
+# standard type it is role-mapped to. In a template, `$0_tag_type` is the tag type as written in the PDF (for example
+# `NormalParagraphStyle`) and `$0_role_mapped_tag_type` is the standard type after role mapping (for example `P`).
+# @KA:problem The action finishes but no tag gets a language.
+# @KA:solution The selection matches no tag. Many PDFs use own tag names mapped to standard types; in a template use
+# `$0_role_mapped_tag_type` instead of `$0_tag_type`, or use a regular expression.
+# @KA:problem "Missing or invalid parameters." (error 12)
+# @KA:solution The parameters were not passed to the action. Select the tags in **Tags** again and run the action again.
+# @KA:problem "Invalid regex or template." (error 11)
+# @KA:solution Enter a regular expression or a template object in **Tags**.
+#
+# @KA:logic Which text is detected for a tag
+# @KA:desc A selected tag that already has a language is skipped unless **Overwrite** is on. The detected text is the
+# tag's replacement text (ActualText) if it has one, otherwise all text inside the tag including its child tags, of
+# which the first **Max Words** words are used. Container tags such as Document or Sect are also changed when they are
+# selected, for example with `.*`. Tags without any text are skipped and listed as warnings in the log.
+# @KA:problem "PDF document is not tagged." (error 31)
+# @KA:solution The language is written to tags, so the PDF must have tags. Tag the PDF first, for example with **AutoTag
+# (PDFix)**, then run the action again. To store the language without tags use **Set Content Language (LangDetect)**.
+#
+# @KA:logic Reliable language detection
+# @KA:desc Language is detected by LangDetect, which knows 55 languages and returns the main language code only, for
+# example `en`, not `en-GB`. A result is used only when the text has at least 3 words and the detection is at least 90 %
+# certain. Short texts of a few words can still be detected as a wrong language; longer text gives a more reliable
+# result. Text made only of numbers or symbols has no language. The same text always gives the same result.
+# @KA:problem Similar languages are mixed up, for example Czech and Slovak.
+# @KA:solution Closely related languages need longer text. Increase **Max Words**, or set the language of such passages
+# manually.
+#
+# @KA:logic PDFix license
+# @KA:desc The license name and key from PDFix Desktop are used to authorize PDFix SDK. Without a license the trial is
+# used, which adds watermarks and may redact random content in the output PDF, and the redacted text can change the
+# detected language.
+# @KA:problem "Failed to authorize PDFix SDK account." (error 22) or "Failed to activate PDFix SDK account." (error 21)
+# @KA:solution The license name or key is not valid. Check the license in PDFix Desktop settings.
 def run_set_tag_language_subcommand(args) -> None:
     check_output_file(args.output, ".pdf")
-    # @KA:param tag_names
-    # @KA:desc Selects the tags that get a language: a regular expression of tag types (for example
-    # `^P$` for paragraphs, `.*` for all tags) or a template with a `tag_update` query. The regular
-    # expression matches both the tag type and the standard type it is role-mapped to. In a template,
-    # `$0_tag_type` is the tag type as written in the PDF (for example `NormalParagraphStyle`) and
-    # `$0_role_mapped_tag_type` is the standard type after role mapping (for example `P`).
-    # @KA:problem The action finishes but no tag gets a language.
-    # @KA:solution The selection matches no tag. Many PDFs use own tag names mapped to standard types;
-    # in a template use `$0_role_mapped_tag_type` instead of `$0_tag_type`, or use a regular expression.
-    # @KA:problem "Missing or invalid parameters." (error 12)
-    # @KA:solution The parameters were not passed to the action. Select the tags in **Tags** again and
-    # run the action again.
-    # @KA:problem "Invalid regex or template." (error 11)
-    # @KA:solution Enter a regular expression or a template object in **Tags**.
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     tag_names: Any = params_parser.get("tag_names")
@@ -282,27 +360,81 @@ def set_tag_language(
 
 
 # @KA:action pdfix_detect_content_language_to_pdf_langdetect
-# @KA:desc Detects the language of the text of each selected text object on the pages and saves it
-# in the page content (marked content), so the language is kept with the text itself, also outside
-# tags. Objects are selected by the **Objects** parameter. Text that is too short for a reliable
-# detection gets the **Default Language**. The input file is not changed; the PDF with the languages
-# is saved as the output file.
-# @KA:context Use when the language must be stored in the page content, for example for content that
-# is not in tags or before tagging. For tagged documents **Set Tag Language (LangDetect)** is usually
-# the better choice, because single text objects are often only a few words long. Detection runs on
-# your computer with LangDetect; no text is sent anywhere.
+# @KA:desc Detects the language of the text of each selected text object on the pages and saves it in the page content
+# (marked content), so the language is kept with the text itself, also outside tags. Objects are selected by the
+# **Objects** parameter. Text that is too short for a reliable detection gets the **Default Language**. The input file
+# is not changed; the PDF with the languages is saved as the output file.
+# @KA:context Use when the language must be stored in the page content, for example for content that is not in tags or
+# before tagging. For tagged documents **Set Tag Language (LangDetect)** is usually the better choice, because single
+# text objects are often only a few words long. Detection runs on your computer with LangDetect; no text is sent
+# anywhere.
+# @KA:param input_pdf
+# @KA:desc PDF document to process. It is only read, never changed.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 5" (error 24)
+# @KA:solution The input file does not exist. Select the file again.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
+# @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
+# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
+# @KA:solution The PDF is password-protected. Remove the password and run the action again.
+#
+# @KA:param output_pdf
+# @KA:desc Where the PDF with the language is saved, a file with the `.pdf` extension. The folder must already exist; an
+# existing file with the same name is overwritten. Both are checked before the document is processed.
+# @KA:problem "Output file must be PDF document." (error 15)
+# @KA:solution Select an output file with the `.pdf` extension.
+# @KA:problem "Output folder does not exist." (error 13)
+# @KA:solution Create the folder shown in the message or select another output file.
+#
+# @KA:param max_words
+# @KA:desc How many words are used for detection (default 100): from the start of the text of each text object. More
+# words give a more reliable result but take longer. At least 3 words are needed for any detection, so values below 3
+# make every detection fail.
+#
+# @KA:param overwrite
+# @KA:desc When off (default), text objects whose marked content already has a language keep it. When on, their language
+# is detected again and replaced.
+#
+# @KA:param default_language
+# @KA:desc Language written to text that is too short or too uncertain for a reliable detection, for example single
+# words or numbers. When empty (default), the document language is used, and `en` when the document has no language.
+# Enter a language code such as `de` to use it instead.
+# @KA:problem A short passage in another language got the document language.
+# @KA:solution The passage has fewer than 3 words or the detection was uncertain. Set the language of that text
+# manually.
+#
+# @KA:param object_types
+# @KA:desc Selects the page objects that get a language: a regular expression of object types (`pds_text` for text, `.*`
+# for all objects) or a template with an `object_update` query, for example text objects on the first page. Only text
+# objects get a language; other selected objects are skipped.
+# @KA:problem "Missing or invalid parameters." (error 12)
+# @KA:solution The parameters were not passed to the action. Select the objects in **Objects** again and run the action
+# again.
+# @KA:problem "Invalid regex or template." (error 11)
+# @KA:solution Enter a regular expression or a template object in **Objects**.
+#
+# @KA:logic Where the language is saved
+# @KA:desc Every page is processed, including text inside form XObjects. For each selected text object the first **Max
+# Words** words of its text are detected. The language is written to the marked content of the object: to the existing
+# marking that already has a language, else to the innermost marking (for example the one that links the text to its
+# tag), else the object is wrapped in a new Span marking.
+#
+# @KA:logic Reliable language detection
+# @KA:desc Language is detected by LangDetect, which knows 55 languages and returns the main language code only, for
+# example `en`, not `en-GB`. A result is used only when the text has at least 3 words and the detection is at least 90 %
+# certain. Short texts of a few words can still be detected as a wrong language; longer text gives a more reliable
+# result. Text made only of numbers or symbols has no language. The same text always gives the same result.
+# @KA:problem Similar languages are mixed up, for example Czech and Slovak.
+# @KA:solution Closely related languages need longer text. Increase **Max Words**, or set the language of such passages
+# manually.
+#
+# @KA:logic PDFix license
+# @KA:desc The license name and key from PDFix Desktop are used to authorize PDFix SDK. Without a license the trial is
+# used, which adds watermarks and may redact random content in the output PDF, and the redacted text can change the
+# detected language.
+# @KA:problem "Failed to authorize PDFix SDK account." (error 22) or "Failed to activate PDFix SDK account." (error 21)
+# @KA:solution The license name or key is not valid. Check the license in PDFix Desktop settings.
 def run_set_content_language_subcommand(args) -> None:
     check_output_file(args.output, ".pdf")
-    # @KA:param object_types
-    # @KA:desc Selects the page objects that get a language: a regular expression of object types
-    # (`pds_text` for text, `.*` for all objects) or a template with an `object_update` query, for
-    # example text objects on the first page. Only text objects get a language; other selected objects
-    # are skipped.
-    # @KA:problem "Missing or invalid parameters." (error 12)
-    # @KA:solution The parameters were not passed to the action. Select the objects in **Objects**
-    # again and run the action again.
-    # @KA:problem "Invalid regex or template." (error 11)
-    # @KA:solution Enter a regular expression or a template object in **Objects**.
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     object_types: Any = params_parser.get("object_types")
@@ -367,20 +499,49 @@ def set_content_language(
 
 
 # @KA:action pdfix_detect_txt_language_to_text_langdetect
-# @KA:desc Detects the language of a text file and saves the language code, for example `en` or `cs`,
-# into an output text file. The input file is not changed.
-# @KA:context Use when you have plain text, for example text extracted from a PDF, and need to know
-# its language for a next step. Detection runs on your computer with LangDetect; no text is sent
-# anywhere.
+# @KA:desc Detects the language of a text file and saves the language code, for example `en` or `cs`, into an output
+# text file. The input file is not changed.
+# @KA:context Use when you have plain text, for example text extracted from a PDF, and need to know its language for a
+# next step. Detection runs on your computer with LangDetect; no text is sent anywhere.
+# @KA:param input_txt
+# @KA:desc Text file (`.txt`, UTF-8) whose language is detected. It is only read, never changed.
+# @KA:problem "Input file must be an existing TXT file." (error 14)
+# @KA:solution Select an existing file with the `.txt` extension.
+#
+# @KA:param output_txt
+# @KA:desc Text file where the detected language code is saved, for example `en`, a file with the `.txt` extension. The
+# file holds only the code. The folder must already exist; an existing file is overwritten.
+# @KA:problem "Output file must be TXT file." (error 15)
+# @KA:solution Select an output file with the `.txt` extension.
+# @KA:problem "Output folder does not exist." (error 13)
+# @KA:solution Create the folder shown in the message or select another output file.
+#
+# @KA:param max_words
+# @KA:desc How many words are used for detection (default 100): from the start of the text file. More words give a more
+# reliable result but take longer. At least 3 words are needed for any detection, so values below 3 make every detection
+# fail.
+#
+# @KA:param overwrite
+# @KA:desc Used by PDFix Desktop, not by the detection itself: tells Desktop whether an existing language may be
+# replaced by the detected one.
+#
+# @KA:logic How the text file is detected
+# @KA:desc The first **Max Words** words of the whole file are detected together and only the language code is written
+# to the output file.
+# @KA:problem "No language was detected in the text." (error 30)
+# @KA:solution The file has fewer than 3 words, contains only numbers or symbols, or **Max Words** is lower than 3. No
+# output file is created.
+#
+# @KA:logic Reliable language detection
+# @KA:desc Language is detected by LangDetect, which knows 55 languages and returns the main language code only, for
+# example `en`, not `en-GB`. A result is used only when the text has at least 3 words and the detection is at least 90 %
+# certain. Short texts of a few words can still be detected as a wrong language; longer text gives a more reliable
+# result. Text made only of numbers or symbols has no language. The same text always gives the same result.
+# @KA:problem Similar languages are mixed up, for example Czech and Slovak.
+# @KA:solution Closely related languages need longer text. Increase **Max Words**, or set the language of such passages
+# manually.
 def run_detect_language_subcommand(args) -> None:
-    # @KA:param overwrite
-    # @KA:desc Used by PDFix Desktop, not by the detection itself: tells Desktop whether an existing
-    # language may be replaced by the detected one.
     check_output_file(args.output, ".txt")
-    # @KA:param input_txt
-    # @KA:desc Text file (`.txt`, UTF-8) whose language is detected. It is only read, never changed.
-    # @KA:problem "Input file must be an existing TXT file." (error 14)
-    # @KA:solution Select an existing file with the `.txt` extension.
     input_path: Path = Path(args.input)
     if input_path.suffix.lower() != ".txt" or not input_path.is_file():
         raise ArgumentInputNotTxtException(args.input)
