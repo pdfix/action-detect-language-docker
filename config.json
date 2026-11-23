@@ -101,9 +101,9 @@
                 {
                     "title": "Default Language",
                     "name": "default_language",
-                    "desc": "Language applied when detection fails (e.g. numbers only)",
+                    "desc": "Language for texts where detection is not reliable (short text, numbers only). Empty uses the document language, or en if the document has none",
                     "type": "string",
-                    "value": "en"
+                    "value": ""
                 }
             ],
             "params": [
@@ -185,9 +185,9 @@
                 {
                     "title": "Default Language",
                     "name": "default_language",
-                    "desc": "Language applied when detection fails (e.g. numbers only)",
+                    "desc": "Language for texts where detection is not reliable (short text, numbers only). Empty uses the document language, or en if the document has none",
                     "type": "string",
-                    "value": "en"
+                    "value": ""
                 }
             ],
             "params": [

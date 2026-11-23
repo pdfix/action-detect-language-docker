@@ -71,8 +71,9 @@ def set_arguments(
                 parser.add_argument(
                     "--default-language",
                     type=str,
-                    default="en",
-                    help="Language applied when detection fails (e.g. numbers only). Defaults to en.",
+                    default="",
+                    help="Language applied when detection is not reliable (short text, numbers only). "
+                    "Defaults to the document language, or en if the document has none.",
                 )
             case "input":
                 parser.add_argument("--input", "-i", type=str, required=True, help="The input PDF or TXT file.")
@@ -209,7 +210,7 @@ def set_tag_language(
         maxwords (int): How many words are considered for language detection.
         overwrite (bool): Whether to overwrite already existing language.
         regex_template (str | Path): Either regex or path to the template JSON file.
-        default_language (str): Language applied when detection fails.
+        default_language (str): Language applied when detection is not reliable, can be empty.
     """
     set_tag_language = SetTagLanguage(
         license_name, license_key, input_path, regex_template, output_path, maxwords, overwrite, default_language
@@ -274,7 +275,7 @@ def set_content_language(
         maxwords (int): How many words are considered for language detection.
         overwrite (bool): Whether to overwrite already existing language.
         regex_template (str | Path): Either regex or path to the template JSON file.
-        default_language (str): Language applied when detection fails.
+        default_language (str): Language applied when detection is not reliable, can be empty.
     """
     set_content_language = SetContentLanguage(
         license_name, license_key, input_path, regex_template, output_path, maxwords, overwrite, default_language

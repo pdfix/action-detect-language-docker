@@ -38,7 +38,7 @@ from exceptions import (
 )
 from logger import get_logger
 from set_language import SetLanguage
-from utils import detect_language, max_words
+from utils import detect_language, max_words, resolve_default_language
 from utils_sdk import authorize_sdk
 
 logger: logging.Logger = get_logger("app_logger")
@@ -75,7 +75,7 @@ class SetContentLanguage(SetLanguage):
             output_path (str): Path to save the PDF document.
             maxwords (int): How many words are considered for language detection.
             overwrite (bool): Whether to overwrite already existing language.
-            default_language (str): Language applied when detection fails.
+            default_language (str): Language applied when detection is not reliable, can be empty.
         """
         self.license_name: str = license_name
         self.license_key: str = license_key
@@ -105,6 +105,9 @@ class SetContentLanguage(SetLanguage):
             raise PdfixFailedToOpenException(pdfix, self.input_path)
 
         try:
+            self.default_language = resolve_default_language(self.default_language, doc.GetLang())
+            logger.info(f"Language for texts without reliable detection: {self.default_language}")
+
             # Load template query
             template_query: Optional[PdfTemplateQuery] = doc.CreateTemplateQuery()
             if template_query is None:
