@@ -199,6 +199,17 @@ class SetContentLanguage(SetLanguage):
             page_object (PdsPageObject): Page object to update.
             page_object_info (str): Page object information in string format.
         """
+        # @KA:action pdfix_detect_content_language_to_pdf_langdetect
+        # @KA:logic Where the language is saved
+        # @KA:desc Every page is processed, including text inside form XObjects. For each selected text
+        # object the first **Max Words** words of its text are detected. The language is written to
+        # the marked content of the object: to the existing marking that already has a language, else
+        # to the innermost marking (for example the one that links the text to its tag), else the
+        # object is wrapped in a new Span marking.
+        #
+        # @KA:param overwrite
+        # @KA:desc When off (default), text objects whose marked content already has a language keep
+        # it. When on, their language is detected again and replaced.
         content_mark: Optional[PdsContentMark] = page_object.GetContentMark()
         if content_mark is None:
             # logger.debug(f"Skipping page object without content marks: {page_object_info}")

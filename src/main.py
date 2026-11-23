@@ -80,6 +80,13 @@ def set_arguments(
             case "key":
                 parser.add_argument("--key", type=str, default="", nargs="?", help="PDFix license key.")
             case "maxwords":
+                # @KA:action pdfix_detect_pdf_language_langdetect pdfix_detect_tag_language_to_pdf_langdetect
+                # pdfix_detect_content_language_to_pdf_langdetect pdfix_detect_txt_language_to_text_langdetect
+                # @KA:param max_words
+                # @KA:desc How many words are used for detection (default 100): from the start of each
+                # page for the document language, of each tag, of each text object, or of the text
+                # file. More words give a more reliable result but take longer. At least 8 words are
+                # needed for any detection, so values below 8 make every detection fail.
                 parser.add_argument(
                     "--maxwords", type=int, default=100, help="How many words are considered for language detection."
                 )
@@ -104,6 +111,20 @@ def check_output_folder(output_path: str) -> None:
     Args:
         output_path (str): Path to the output file.
     """
+    # @KA:action pdfix_detect_pdf_language_langdetect pdfix_detect_tag_language_to_pdf_langdetect
+    # pdfix_detect_content_language_to_pdf_langdetect
+    # @KA:param output_pdf
+    # @KA:desc Where the PDF with the language is saved. The folder must already exist; an existing
+    # file with the same name is overwritten. The folder is checked before the document is processed.
+    # @KA:problem "Output folder does not exist." (error 13)
+    # @KA:solution Create the folder shown in the message or select another output file.
+    #
+    # @KA:action pdfix_detect_txt_language_to_text_langdetect
+    # @KA:param output_txt
+    # @KA:desc Text file where the detected language code is saved, for example `en`. The file holds
+    # only the code. The folder must already exist; an existing file is overwritten.
+    # @KA:problem "Output folder does not exist." (error 13)
+    # @KA:solution Create the folder shown in the message or select another output file.
     output_folder: Path = Path(output_path).resolve().parent
     if not output_folder.is_dir():
         raise ArgumentOutputFolderNotExistsException(output_folder.as_posix())
@@ -131,7 +152,20 @@ def get_pdfix_config(path: Optional[str]) -> None:
                 out.write(file.read())
 
 
+# @KA:action pdfix_detect_pdf_language_langdetect
+# @KA:desc Detects the main language of the PDF from its text and saves it as the document language,
+# the language PDF readers and screen readers use for the whole document. The text of every page is
+# checked and the language found on most pages wins. The input file is not changed; the PDF with the
+# language is saved as the output file.
+# @KA:context Run on the **whole document** when the document language is missing or wrong, a common
+# accessibility (PDF/UA, WCAG) failure. Detection runs on your computer with LangDetect; no text is
+# sent anywhere. The PDF must contain real text; scanned pages need OCR first. To mark passages
+# written in another language, run **Set Tag Language (LangDetect)** afterwards.
 def run_set_document_language_subcommand(args) -> None:
+    # @KA:param overwrite
+    # @KA:desc When on (default), the detected language replaces the language the document already
+    # has. When off, a document that already has a language is saved unchanged and no detection runs;
+    # only documents without a language get one.
     check_output_folder(args.output)
     set_document_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
 
@@ -154,8 +188,31 @@ def set_document_language(
     set_document_language.set_document_language()
 
 
+# @KA:action pdfix_detect_tag_language_to_pdf_langdetect
+# @KA:desc Detects the language of the text of each selected tag and saves it on the tag, so screen
+# readers read passages in another language with the right pronunciation. Tags are selected by the
+# **Tags** parameter. Text that is too short for a reliable detection gets the **Default Language**.
+# The input file is not changed; the PDF with the languages is saved as the output file.
+# @KA:context Run on a **tagged** PDF that contains passages in more than one language, after the
+# document language is set (for example by **Set Document Language (LangDetect)**). Select tags with
+# longer text, such as paragraphs (`^P$`); headings and table cells are often too short to detect.
+# Detection runs on your computer with LangDetect; no text is sent anywhere.
 def run_set_tag_language_subcommand(args) -> None:
     check_output_folder(args.output)
+    # @KA:param tag_names
+    # @KA:desc Selects the tags that get a language: a regular expression of tag types (for example
+    # `^P$` for paragraphs, `.*` for all tags) or a template with a `tag_update` query. The regular
+    # expression matches both the tag type and the standard type it is role-mapped to. In a template,
+    # `$0_tag_type` is the tag type as written in the PDF (for example `NormalParagraphStyle`) and
+    # `$0_role_mapped_tag_type` is the standard type after role mapping (for example `P`).
+    # @KA:problem The action finishes but no tag gets a language.
+    # @KA:solution The selection matches no tag. Many PDFs use own tag names mapped to standard types;
+    # in a template use `$0_role_mapped_tag_type` instead of `$0_tag_type`, or use a regular expression.
+    # @KA:problem "Missing or invalid parameters." (error 12)
+    # @KA:solution The parameters were not passed to the action. Select the tags in **Tags** again and
+    # run the action again.
+    # @KA:problem "Invalid regex or template." (error 11)
+    # @KA:solution Enter a regular expression or a template object in **Tags**.
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     tag_names: Any = params_parser.get("tag_names")
@@ -219,8 +276,28 @@ def set_tag_language(
     set_tag_language.set_tag_language()
 
 
+# @KA:action pdfix_detect_content_language_to_pdf_langdetect
+# @KA:desc Detects the language of the text of each selected text object on the pages and saves it
+# in the page content (marked content), so the language is kept with the text itself, also outside
+# tags. Objects are selected by the **Objects** parameter. Text that is too short for a reliable
+# detection gets the **Default Language**. The input file is not changed; the PDF with the languages
+# is saved as the output file.
+# @KA:context Use when the language must be stored in the page content, for example for content that
+# is not in tags or before tagging. For tagged documents **Set Tag Language (LangDetect)** is usually
+# the better choice, because single text objects are often only a few words long. Detection runs on
+# your computer with LangDetect; no text is sent anywhere.
 def run_set_content_language_subcommand(args) -> None:
     check_output_folder(args.output)
+    # @KA:param object_types
+    # @KA:desc Selects the page objects that get a language: a regular expression of object types
+    # (`pds_text` for text, `.*` for all objects) or a template with an `object_update` query, for
+    # example text objects on the first page. Only text objects get a language; other selected objects
+    # are skipped.
+    # @KA:problem "Missing or invalid parameters." (error 12)
+    # @KA:solution The parameters were not passed to the action. Select the objects in **Objects**
+    # again and run the action again.
+    # @KA:problem "Invalid regex or template." (error 11)
+    # @KA:solution Enter a regular expression or a template object in **Objects**.
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     object_types: Any = params_parser.get("object_types")
@@ -284,8 +361,21 @@ def set_content_language(
     set_content_language.set_content_language()
 
 
+# @KA:action pdfix_detect_txt_language_to_text_langdetect
+# @KA:desc Detects the language of a text file and saves the language code, for example `en` or `cs`,
+# into an output text file. The input file is not changed.
+# @KA:context Use when you have plain text, for example text extracted from a PDF, and need to know
+# its language for a next step. Detection runs on your computer with LangDetect; no text is sent
+# anywhere.
 def run_detect_language_subcommand(args) -> None:
+    # @KA:param overwrite
+    # @KA:desc Used by PDFix Desktop, not by the detection itself: tells Desktop whether an existing
+    # language may be replaced by the detected one.
     check_output_folder(args.output)
+    # @KA:param input_txt
+    # @KA:desc Text file (`.txt`, UTF-8) whose language is detected. It is only read, never changed.
+    # @KA:problem "Input file must be an existing TXT file." (error 14)
+    # @KA:solution Select an existing file with the `.txt` extension.
     input_path: Path = Path(args.input)
     if input_path.suffix.lower() != ".txt" or not input_path.is_file():
         raise ArgumentInputNotTxtException(args.input)

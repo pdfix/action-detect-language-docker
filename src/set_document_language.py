@@ -53,6 +53,17 @@ class SetDocumentLanguage(SetLanguage):
 
         authorize_sdk(pdfix, self.license_name, self.license_key)
 
+        # @KA:action pdfix_detect_pdf_language_langdetect pdfix_detect_tag_language_to_pdf_langdetect
+        # pdfix_detect_content_language_to_pdf_langdetect
+        # @KA:param input_pdf
+        # @KA:desc PDF document to process. It is only read, never changed.
+        # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 5" (error 24)
+        # @KA:solution The input file does not exist. Select the file again.
+        # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
+        # @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the
+        # action again.
+        # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
+        # @KA:solution The PDF is password-protected. Remove the password and run the action again.
         doc: Optional[PdfDoc] = pdfix.OpenDoc(self.input_path, "")
         if doc is None:
             raise PdfixFailedToOpenException(pdfix, self.input_path)
@@ -94,6 +105,15 @@ class SetDocumentLanguage(SetLanguage):
             Detected language.
         """
         # Gather words from each page
+        # @KA:action pdfix_detect_pdf_language_langdetect
+        # @KA:logic How the document language is chosen
+        # @KA:desc The first **Max Words** words of every page are detected separately. Pages with too
+        # little text for a reliable result are left out, and the language found on most of the other
+        # pages becomes the document language.
+        # @KA:problem "No language was detected in the text." (error 31)
+        # @KA:solution No page has enough text for a reliable detection (at least 8 words). The PDF may
+        # be a scan without a text layer (run OCR first), contain only numbers, or **Max Words** is
+        # lower than 8. No output PDF is created.
         pages_words: list[list[str]] = self._gather_words_from_each_page(pdfix, doc, self.maxwords)
         pages: list[str] = [" ".join(page) for page in pages_words]
 

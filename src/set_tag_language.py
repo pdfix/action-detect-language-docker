@@ -110,6 +110,12 @@ class SetTagLanguage(SetLanguage):
                     raise PdfixFailedToLoadTemplateException(pdfix, "Failed to load template from stream")
 
             # Enumerate struct tree
+            # @KA:action pdfix_detect_tag_language_to_pdf_langdetect
+            # @KA:logic Tagged PDF needed
+            # @KA:desc The language is written to tags, so the PDF must have a tag tree.
+            # @KA:problem "PDF document is not tagged." (error 32)
+            # @KA:solution Tag the PDF first, for example with **AutoTag (PDFix)**, then run the action
+            # again. To store the language without tags use **Set Content Language (LangDetect)**.
             struct_tree: Optional[PdsStructTree] = doc.GetStructTree()
             if struct_tree is None:
                 raise PdfNotTaggedException()
@@ -178,6 +184,17 @@ class SetTagLanguage(SetLanguage):
             struct_element (PdsStructElement): Struct element to update.
             element_info (str): Element type and page number(s) in string format.
         """
+        # @KA:action pdfix_detect_tag_language_to_pdf_langdetect
+        # @KA:logic Which text is detected for a tag
+        # @KA:desc A selected tag that already has a language is skipped unless **Overwrite** is on. The
+        # detected text is the tag's replacement text (ActualText) if it has one, otherwise all text
+        # inside the tag including its child tags, of which the first **Max Words** words are used.
+        # Container tags such as Document or Sect are also changed when they are selected, for example
+        # with `.*`. Tags without any text are skipped and listed as warnings in the log.
+        #
+        # @KA:param overwrite
+        # @KA:desc When off (default), selected tags that already have a language keep it. When on, their
+        # language is detected again and replaced.
         present_language: str = struct_element.GetLang()
         if present_language and not self.overwrite:
             # logger.debug(f"Skipping element with existing language ({present_language}): {element_info}")
