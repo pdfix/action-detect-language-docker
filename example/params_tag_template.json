@@ -13,7 +13,7 @@
                         "query": {
                             "$and": [
                                 {
-                                    "$0_tag_type": {
+                                    "$0_role_mapped_tag_type": {
                                         "$regex": "^P$"
                                     }
                                 },
