@@ -16,6 +16,7 @@ EC_PDFIX_FAILED_TO_SAVE_LANG: int = 26
 EC_PDFIX_FAILED_TO_LOAD_TEMPLATE: int = 27
 
 EC_FAILED_TO_DETECT_LANG: int = 31
+EC_PDF_NOT_TAGGED: int = 32
 
 MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage and try again."
 MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please check the usage and try again."
@@ -33,6 +34,7 @@ MESSAGE_PDFIX_FAILED_TO_SAVE_LANG: str = "Failed to set language to PDF document
 MESSAGE_PDFIX_FAILED_TO_LOAD_TEMPLATE: str = "Failed to load template file."
 
 MESSAGE_FAILED_TO_DETECT_LANG: str = "No language was detected in the text."
+MESSAGE_PDF_NOT_TAGGED: str = "PDF document is not tagged."
 
 
 class ExpectedException(BaseException):
@@ -132,3 +134,8 @@ class DetectLanguageException(ExpectedException):
 class FailToDetectLangException(DetectLanguageException):
     def __init__(self) -> None:
         super().__init__(EC_FAILED_TO_DETECT_LANG, MESSAGE_FAILED_TO_DETECT_LANG)
+
+
+class PdfNotTaggedException(DetectLanguageException):
+    def __init__(self) -> None:
+        super().__init__(EC_PDF_NOT_TAGGED, MESSAGE_PDF_NOT_TAGGED)

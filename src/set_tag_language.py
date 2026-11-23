@@ -25,9 +25,9 @@ from pdfixsdk import (
 from exceptions import (
     PdfixFailedToLoadTemplateException,
     PdfixFailedToOpenException,
-    PdfixFailedToReadException,
     PdfixFailedToSaveException,
     PdfixInitializeException,
+    PdfNotTaggedException,
 )
 from logger import get_logger
 from set_language import SetLanguage
@@ -109,7 +109,7 @@ class SetTagLanguage(SetLanguage):
             # Enumerate struct tree
             struct_tree: Optional[PdsStructTree] = doc.GetStructTree()
             if struct_tree is None:
-                raise PdfixFailedToReadException(pdfix, "Failed to acquire StructTree")
+                raise PdfNotTaggedException()
 
             self.struct_tree = struct_tree
             self.template_query = template_query

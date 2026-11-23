@@ -133,7 +133,8 @@
                 "24": "Failed to open PDF document.",
                 "25": "Failed to save PDF document.",
                 "26": "Failed to set language to PDF document.",
-                "27": "Failed to load template file."
+                "27": "Failed to load template file.",
+                "32": "PDF document is not tagged."
             },
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
