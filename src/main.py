@@ -80,7 +80,7 @@ def set_arguments(
                 parser.add_argument("--key", type=str, default="", nargs="?", help="PDFix license key.")
             case "maxwords":
                 parser.add_argument(
-                    "--maxwords", type=int, default=100, help="How many wordsd are considered for language detection."
+                    "--maxwords", type=int, default=100, help="How many words are considered for language detection."
                 )
             case "name":
                 parser.add_argument("--name", type=str, default="", nargs="?", help="PDFix license name.")
