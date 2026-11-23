@@ -234,7 +234,7 @@
                 "name": "pdfix/detect-language",
                 "tag": "latest"
             },
-            "program": "docker run -v \"${working_directory}:/data\" -w /data --rm pdfix/detect-language:latest detect_language -i \"/data/${input_txt}\" -o \"/data/${output_txt}\" --maxwords \"${max_words}\"",
+            "program": "docker run -v \"${working_directory}:/data\" -w /data --rm pdfix/detect-language:latest detect-language -i \"/data/${input_txt}\" -o \"/data/${output_txt}\" --maxwords \"${max_words}\"",
             "args": [
                 {
                     "name": "input_txt",

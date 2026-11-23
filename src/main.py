@@ -337,9 +337,9 @@ def main() -> None:  # noqa: D103
     )
     set_content_language_subparser.set_defaults(func=run_set_content_language_subcommand)
 
-    # detect language subparser # TODO rename
+    # Detect language subparser
     detect_language_subparser = subparsers.add_parser(
-        "detect_language", help="Extract text from a text file or input and write it to a text file."
+        "detect-language", help="Extract text from a text file or input and write it to a text file."
     )
     set_arguments(
         detect_language_subparser,

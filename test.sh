@@ -82,7 +82,7 @@ else
 fi
 
 info "Test #06: Run language detection txt to txt"
-docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE detect_language -i example/language_identification_wikipedia.txt -o $TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt > /dev/null
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE detect-language -i example/language_identification_wikipedia.txt -o $TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt > /dev/null
 if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/language_identification_wikipedia_lang.txt" ]; then
     success "passed"
 else
