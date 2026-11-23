@@ -87,7 +87,7 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 
 `tag_names` is an ECMAScript regular expression matching tag names, or a template `tag_update` object.
 
-Example (`tests/params_tag.json`) — match only `P` tags:
+Example (`example/params_tag.json`) — match only `P` tags:
 
 ```json
 [
@@ -113,7 +113,7 @@ Use `"value": ".*"` to match all tags.
 
 `object_types` is an ECMAScript regular expression matching page object types, or a template `object_update` object.
 
-Example (`tests/params_content.json`) — match only text objects:
+Example (`example/params_content.json`) — match only text objects:
 
 ```json
 [

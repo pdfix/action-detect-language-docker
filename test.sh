@@ -64,7 +64,7 @@ else
 fi
 
 info "Test #04: Run language detection on tags"
-docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE set-tag-language -i example/food_fact_sheet.pdf -o $TEMPORARY_DIRECTORY/food_fact_sheet_tags.pdf --params tests/params_tag.json > /dev/null
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE set-tag-language -i example/food_fact_sheet.pdf -o $TEMPORARY_DIRECTORY/food_fact_sheet_tags.pdf --params example/params_tag.json > /dev/null
 if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/food_fact_sheet_tags.pdf" ]; then
     success "passed"
 else
@@ -73,7 +73,7 @@ else
 fi
 
 info "Test #05: Run language detection on content"
-docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE set-content-language -i example/air_quality.pdf -o $TEMPORARY_DIRECTORY/air_quality_content.pdf --params tests/params_content.json > /dev/null
+docker run --rm $PLATFORM -v $(pwd):/data -w /data $DOCKER_IMAGE set-content-language -i example/air_quality.pdf -o $TEMPORARY_DIRECTORY/air_quality_content.pdf --params example/params_content.json > /dev/null
 if [ -f "$(pwd)/$TEMPORARY_DIRECTORY/air_quality_content.pdf" ]; then
     success "passed"
 else
