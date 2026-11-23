@@ -50,8 +50,7 @@
                 "24": "Failed to open PDF document.",
                 "25": "Failed to save PDF document.",
                 "26": "Failed to set language to PDF document.",
-                "30": "No words were extracted from input.",
-                "31": "No language was detected, not setting it to PDF."
+                "31": "No language was detected in the text."
             },
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
@@ -132,9 +131,7 @@
                 "24": "Failed to open PDF document.",
                 "25": "Failed to save PDF document.",
                 "26": "Failed to set language to PDF document.",
-                "27": "Failed to load template file.",
-                "30": "No words were extracted from input.",
-                "31": "No language was detected, not setting it to PDF."
+                "27": "Failed to load template file."
             },
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
@@ -215,9 +212,7 @@
                 "24": "Failed to open PDF document.",
                 "25": "Failed to save PDF document.",
                 "26": "Failed to set language to PDF document.",
-                "27": "Failed to load template file.",
-                "30": "No words were extracted from input.",
-                "31": "No language was detected, not setting it to PDF."
+                "27": "Failed to load template file."
             },
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         },
@@ -278,8 +273,7 @@
                 "24": "Failed to open PDF document.",
                 "25": "Failed to save PDF document.",
                 "26": "Failed to set language to PDF document.",
-                "30": "No words were extracted from input.",
-                "31": "No language was detected, not setting it to PDF."
+                "31": "No language was detected in the text."
             },
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
         }

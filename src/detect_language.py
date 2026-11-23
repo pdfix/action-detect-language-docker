@@ -1,5 +1,6 @@
 import logging
 
+from exceptions import FailToDetectLangException
 from logger import get_logger
 from utils import detect_language, max_words
 
@@ -32,6 +33,9 @@ class DetectLanguage:
         else:
             logger.info(f"Input: '{self.input_path}' is not a PDF or TXT file. Detecting language from input string.")
             language = self._detect_language_from_input()
+
+        if not language:
+            raise FailToDetectLangException()
 
         with open(self.output_path, "w", encoding="utf-8") as outfile:
             outfile.write(language)

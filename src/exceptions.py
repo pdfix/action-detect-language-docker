@@ -12,7 +12,6 @@ EC_PDFIX_FAILED_TO_SAVE: int = 25
 EC_PDFIX_FAILED_TO_SAVE_LANG: int = 26
 EC_PDFIX_FAILED_TO_LOAD_TEMPLATE: int = 27
 
-EC_FAILED_TO_OBTAIN_TEXT: int = 30
 EC_FAILED_TO_DETECT_LANG: int = 31
 
 MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage and try again."
@@ -27,8 +26,7 @@ MESSAGE_PDFIX_FAILED_TO_SAVE: str = "Failed to save PDF document."
 MESSAGE_PDFIX_FAILED_TO_SAVE_LANG: str = "Failed to set language to PDF document."
 MESSAGE_PDFIX_FAILED_TO_LOAD_TEMPLATE: str = "Failed to load template file."
 
-MESSAGE_FAILED_TO_OBTAIN_TEXT: str = "No words were extracted from input."
-MESSAGE_FAILED_TO_DETECT_LANG: str = "No language was detected, not setting it to PDF."
+MESSAGE_FAILED_TO_DETECT_LANG: str = "No language was detected in the text."
 
 
 class ExpectedException(BaseException):
@@ -108,11 +106,6 @@ class DetectLanguageException(ExpectedException):
     def __init__(self, error_code: int, message: str) -> None:
         super().__init__(error_code)
         self._add_note(message)
-
-
-class FailToExtractWordsException(DetectLanguageException):
-    def __init__(self) -> None:
-        super().__init__(EC_FAILED_TO_OBTAIN_TEXT, MESSAGE_FAILED_TO_OBTAIN_TEXT)
 
 
 class FailToDetectLangException(DetectLanguageException):

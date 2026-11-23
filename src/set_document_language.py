@@ -7,6 +7,7 @@ from typing import Optional
 from pdfixsdk import GetPdfix, PdfDoc, Pdfix, kSaveFull
 
 from exceptions import (
+    FailToDetectLangException,
     PdfixFailedToOpenException,
     PdfixFailedToSaveException,
     PdfixFailedToSaveLanguageException,
@@ -69,8 +70,10 @@ class SetDocumentLanguage(SetLanguage):
             most_used_langugage: list[tuple[str, int]] = language_counter.most_common(1)
             detected_language: str = most_used_langugage[0][0] if most_used_langugage else ""
 
-            if most_used_langugage:
-                logger.info(f"Detected language: {detected_language}")
+            if not detected_language:
+                raise FailToDetectLangException()
+
+            logger.info(f"Detected language: {detected_language}")
 
             # Set language to document metadata
             if not doc.SetLang(detected_language):
