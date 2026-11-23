@@ -70,7 +70,7 @@ class SetLanguage(ABC):
                 except Exception:
                     raise
                 finally:
-                    page_map.Release
+                    page_map.Release()
             except Exception as e:
                 exception_for_later = e
                 logger.error(f"Problem with page {page_index + 1}")
