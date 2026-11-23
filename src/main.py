@@ -252,9 +252,9 @@ def set_document_language(
 #
 # @KA:param default_language
 # @KA:desc Language written to text that is too short or too uncertain for a reliable detection, for example single
-# words or numbers. When empty (default), the document language is used, and `en` when the document has no language.
-# Enter a language code such as `de` to use it instead.
-# @KA:problem A short passage in another language got the document language.
+# words or numbers. The default is `en`; enter another language code such as `de` to use it instead. When the field is
+# empty, the document language is used, and `en` when the document has no language.
+# @KA:problem A short passage in another language got the default language.
 # @KA:solution The passage has fewer than 3 words or the detection was uncertain. Set the language of that tag manually.
 #
 # @KA:param tag_names
@@ -396,9 +396,9 @@ def set_tag_language(
 #
 # @KA:param default_language
 # @KA:desc Language written to text that is too short or too uncertain for a reliable detection, for example single
-# words or numbers. When empty (default), the document language is used, and `en` when the document has no language.
-# Enter a language code such as `de` to use it instead.
-# @KA:problem A short passage in another language got the document language.
+# words or numbers. The default is `en`; enter another language code such as `de` to use it instead. When the field is
+# empty, the document language is used, and `en` when the document has no language.
+# @KA:problem A short passage in another language got the default language.
 # @KA:solution The passage has fewer than 3 words or the detection was uncertain. Set the language of that text
 # manually.
 #

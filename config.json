@@ -111,7 +111,7 @@
                     "name": "default_language",
                     "desc": "Language for texts where detection is not reliable (short text, numbers only). Empty uses the document language, or en if the document has none",
                     "type": "string",
-                    "value": ""
+                    "value": "en"
                 }
             ],
             "params": [
@@ -196,7 +196,7 @@
                     "name": "default_language",
                     "desc": "Language for texts where detection is not reliable (short text, numbers only). Empty uses the document language, or en if the document has none",
                     "type": "string",
-                    "value": ""
+                    "value": "en"
                 }
             ],
             "params": [
