@@ -5,6 +5,7 @@ EC_ARG_INVALID_REGEX_OR_TEMPLATE: int = 11
 EC_ARG_PARAMS: int = 12
 EC_ARG_OUTPUT_FOLDER_NOT_EXISTS: int = 13
 EC_ARG_INPUT_NOT_TXT: int = 14
+EC_ARG_OUTPUT_EXTENSION: int = 15
 
 EC_PDFIX_INITIALIZE: int = 20
 EC_PDFIX_ACTIVATION_FAILED: int = 21
@@ -23,6 +24,8 @@ MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please 
 MESSAGE_ARG_PARAMS: str = "Missing or invalid parameters."
 MESSAGE_ARG_OUTPUT_FOLDER_NOT_EXISTS: str = "Output folder does not exist."
 MESSAGE_ARG_INPUT_NOT_TXT: str = "Input file must be an existing TXT file."
+MESSAGE_ARG_OUTPUT_NOT_PDF: str = "Output file must be PDF document."
+MESSAGE_ARG_OUTPUT_NOT_TXT: str = "Output file must be TXT file."
 
 MESSAGE_PDFIX_INITIALIZE: str = "Failed to initialize PDFix SDK."
 MESSAGE_PDFIX_ACTIVATION_FAILED: str = "Failed to activate PDFix SDK account."
@@ -72,6 +75,12 @@ class ArgumentOutputFolderNotExistsException(ArgumentException):
 class ArgumentInputNotTxtException(ArgumentException):
     def __init__(self, path: str) -> None:
         super().__init__(f"{MESSAGE_ARG_INPUT_NOT_TXT} {path}", EC_ARG_INPUT_NOT_TXT)
+
+
+class ArgumentOutputExtensionException(ArgumentException):
+    def __init__(self, extension: str) -> None:
+        message: str = MESSAGE_ARG_OUTPUT_NOT_PDF if extension == ".pdf" else MESSAGE_ARG_OUTPUT_NOT_TXT
+        super().__init__(message, EC_ARG_OUTPUT_EXTENSION)
 
 
 class PdfixInitializeException(ExpectedException):

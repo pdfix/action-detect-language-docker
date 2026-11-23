@@ -40,7 +40,7 @@ docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest <command
 | Option | Required | Type / expected value | Description |
 |---|:---:|---|---|
 | `--input`, `-i` | yes | Path to an existing `.pdf` file | Input PDF |
-| `--output`, `-o` | yes | Path for output `.pdf` file | Output PDF |
+| `--output`, `-o` | yes | Path for output `.pdf` file (folder must exist) | Output PDF |
 | `--name` | no | String (PDFix account license name) | PDFix license name |
 | `--key` | no | String (PDFix account license key) | PDFix license key |
 | `--maxwords` | no | Integer (default: **100**) | How many words are considered for language detection |

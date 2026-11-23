@@ -16,6 +16,7 @@ from exceptions import (
     MESSAGE_ARG_GENERAL,
     ArgumentException,
     ArgumentInputNotTxtException,
+    ArgumentOutputExtensionException,
     ArgumentOutputFolderNotExistsException,
     ExpectedException,
     InvalidRegexOrTemplateException,
@@ -104,12 +105,13 @@ def set_arguments(
                 )
 
 
-def check_output_folder(output_path: str) -> None:
+def check_output_file(output_path: str, extension: str) -> None:
     """
-    Check that the folder for the output file exists before any processing.
+    Check the output file extension and that its folder exists before any processing.
 
     Args:
         output_path (str): Path to the output file.
+        extension (str): Expected extension of the output file, for example ".pdf".
     """
     # @KA:action pdfix_detect_pdf_language_langdetect pdfix_detect_tag_language_to_pdf_langdetect
     # pdfix_detect_content_language_to_pdf_langdetect
@@ -125,6 +127,9 @@ def check_output_folder(output_path: str) -> None:
     # only the code. The folder must already exist; an existing file is overwritten.
     # @KA:problem "Output folder does not exist." (error 13)
     # @KA:solution Create the folder shown in the message or select another output file.
+    if Path(output_path).suffix.lower() != extension:
+        raise ArgumentOutputExtensionException(extension)
+
     output_folder: Path = Path(output_path).resolve().parent
     if not output_folder.is_dir():
         raise ArgumentOutputFolderNotExistsException(output_folder.as_posix())
@@ -166,7 +171,7 @@ def run_set_document_language_subcommand(args) -> None:
     # @KA:desc When on (default), the detected language replaces the language the document already
     # has. When off, a document that already has a language is saved unchanged and no detection runs;
     # only documents without a language get one.
-    check_output_folder(args.output)
+    check_output_file(args.output, ".pdf")
     set_document_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
 
 
@@ -198,7 +203,7 @@ def set_document_language(
 # longer text, such as paragraphs (`^P$`); headings and table cells are often too short to detect.
 # Detection runs on your computer with LangDetect; no text is sent anywhere.
 def run_set_tag_language_subcommand(args) -> None:
-    check_output_folder(args.output)
+    check_output_file(args.output, ".pdf")
     # @KA:param tag_names
     # @KA:desc Selects the tags that get a language: a regular expression of tag types (for example
     # `^P$` for paragraphs, `.*` for all tags) or a template with a `tag_update` query. The regular
@@ -287,7 +292,7 @@ def set_tag_language(
 # the better choice, because single text objects are often only a few words long. Detection runs on
 # your computer with LangDetect; no text is sent anywhere.
 def run_set_content_language_subcommand(args) -> None:
-    check_output_folder(args.output)
+    check_output_file(args.output, ".pdf")
     # @KA:param object_types
     # @KA:desc Selects the page objects that get a language: a regular expression of object types
     # (`pds_text` for text, `.*` for all objects) or a template with an `object_update` query, for
@@ -371,7 +376,7 @@ def run_detect_language_subcommand(args) -> None:
     # @KA:param overwrite
     # @KA:desc Used by PDFix Desktop, not by the detection itself: tells Desktop whether an existing
     # language may be replaced by the detected one.
-    check_output_folder(args.output)
+    check_output_file(args.output, ".txt")
     # @KA:param input_txt
     # @KA:desc Text file (`.txt`, UTF-8) whose language is detected. It is only read, never changed.
     # @KA:problem "Input file must be an existing TXT file." (error 14)

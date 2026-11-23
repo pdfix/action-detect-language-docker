@@ -50,6 +50,7 @@
             "errors": {
                 "10": "Failed to parse arguments. Please check the usage and try again.",
                 "13": "Output folder does not exist.",
+                "15": "Output file must be PDF document.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK account.",
                 "22": "Failed to authorize PDFix SDK account.",
@@ -133,6 +134,7 @@
                 "11": "Invalid regex or template. Please check the usage and try again.",
                 "12": "Missing or invalid parameters.",
                 "13": "Output folder does not exist.",
+                "15": "Output file must be PDF document.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK account.",
                 "22": "Failed to authorize PDFix SDK account.",
@@ -217,6 +219,7 @@
                 "11": "Invalid regex or template. Please check the usage and try again.",
                 "12": "Missing or invalid parameters.",
                 "13": "Output folder does not exist.",
+                "15": "Output file must be PDF document.",
                 "20": "Failed to initialize PDFix SDK.",
                 "21": "Failed to activate PDFix SDK account.",
                 "22": "Failed to authorize PDFix SDK account.",
@@ -279,6 +282,7 @@
                 "10": "Failed to parse arguments. Please check the usage and try again.",
                 "13": "Output folder does not exist.",
                 "14": "Input file must be an existing TXT file.",
+                "15": "Output file must be TXT file.",
                 "30": "No language was detected in the text."
             },
             "progress_regex": "^(?<text>[^:]+):\\s+(?<progress>\\d{1,3})%"
