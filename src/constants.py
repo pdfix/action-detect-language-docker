@@ -8,3 +8,4 @@ DETECTION_MIN_WORDS: int = 3
 DETECTION_MIN_PROBABILITY: float = 0.9
 # Language used when user and document do not provide any
 FALLBACK_LANGUAGE: str = "en"
+SDK_ERROR_INVALID_PASSWORD: int = 34  # PDFix SDK error type of OpenDoc with a missing or wrong password

@@ -41,6 +41,7 @@ docker run --rm -v "$(pwd)":/data -w /data pdfix/detect-language:latest <command
 |---|:---:|---|---|
 | `--input`, `-i` | yes | Path to an existing `.pdf` file | Input PDF |
 | `--output`, `-o` | yes | Path for output `.pdf` file (folder must exist) | Output PDF |
+| `--password` | no | String (default: empty) | Password to open a password-protected PDF |
 | `--name` | no | String (PDFix account license name) | PDFix license name |
 | `--key` | no | String (PDFix account license key) | PDFix license key |
 | `--maxwords` | no | Integer (default: **100**) | How many words are considered for language detection |
@@ -81,6 +82,7 @@ Uses the [Common (PDF commands)](#common-pdf-commands) arguments, plus:
 |---|:---:|---|---|
 | `--input`, `-i` | yes | Path to an existing `.txt` file | Source text file |
 | `--output`, `-o` | yes | Path for output `.txt` file | Output file containing the detected language code |
+| `--password` | no | String (default: empty) | Password to open a password-protected PDF |
 | `--maxwords` | no | Integer (default: **100**) | How many words are considered for language detection |
 
 ## Params JSON

@@ -22,12 +22,14 @@ from pdfixsdk import (
     kSaveFull,
 )
 
+from constants import SDK_ERROR_INVALID_PASSWORD
 from exceptions import (
     PdfixFailedToLoadTemplateException,
     PdfixFailedToOpenException,
     PdfixFailedToSaveException,
     PdfixInitializeException,
     PdfNotTaggedException,
+    PdfPasswordException,
 )
 from logger import get_logger
 from set_language import SetLanguage
@@ -48,6 +50,7 @@ class SetTagLanguage(SetLanguage):
         maxwords: int,
         overwrite: bool,
         default_language: str,
+        password: str = "",
     ) -> None:
         """
         Initialize class for setting language to chosen tags in a PDF document.
@@ -61,6 +64,7 @@ class SetTagLanguage(SetLanguage):
             maxwords (int): How many words are considered for language detection.
             overwrite (bool): Whether to overwrite already existing language.
             default_language (str): Language applied when detection is not reliable, can be empty.
+            password (str): Password of the PDF document, empty when it has none.
         """
         self.license_name: str = license_name
         self.license_key: str = license_key
@@ -70,6 +74,7 @@ class SetTagLanguage(SetLanguage):
         self.maxwords: int = maxwords
         self.overwrite: bool = overwrite
         self.default_language: str = default_language
+        self.password: str = password
 
         # Preparation for enumeration and element testing
         self.struct_tree: Optional[PdsStructTree] = None
@@ -85,8 +90,10 @@ class SetTagLanguage(SetLanguage):
 
         authorize_sdk(pdfix, self.license_name, self.license_key)
 
-        doc: Optional[PdfDoc] = pdfix.OpenDoc(self.input_path, "")
+        doc: Optional[PdfDoc] = pdfix.OpenDoc(self.input_path, self.password)
         if doc is None:
+            if pdfix.GetErrorType() == SDK_ERROR_INVALID_PASSWORD:
+                raise PdfPasswordException(pdfix, self.input_path)
             raise PdfixFailedToOpenException(pdfix, self.input_path)
 
         try:

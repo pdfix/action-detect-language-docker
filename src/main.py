@@ -89,6 +89,10 @@ def set_arguments(
                 parser.add_argument("--name", type=str, default="", nargs="?", help="PDFix license name.")
             case "output":
                 parser.add_argument("--output", "-o", type=str, required=required_output, help=output_help)
+            case "password":
+                parser.add_argument(
+                    "--password", type=str, default="", help="Password to open a password-protected PDF document."
+                )
             case "overwrite":
                 parser.add_argument(
                     "--overwrite", type=str2bool, default=False, help="Overwrite already existing language."
@@ -164,9 +168,10 @@ def get_pdfix_config(path: Optional[str]) -> None:
 # PDF file.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
 # @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
-# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
-# @KA:solution The PDF is password-protected. Remove the password and run the action again.
 #
+# @KA:problem "PDF document is password-protected. Remove the password with another action first." (error 31)
+# @KA:solution The PDF needs a password to open. Remove the password with another action or in a PDF editor and run the
+# action again. From the command line, pass the password with `--password`.
 # @KA:param output_pdf
 # @KA:desc Where the PDF with the language is saved, a file with the `.pdf` extension. The folder must already exist; an
 # existing file with the same name is overwritten. Both are checked before the document is processed.
@@ -209,11 +214,17 @@ def get_pdfix_config(path: Optional[str]) -> None:
 def run_set_document_language_subcommand(args) -> None:
     check_output_file(args.output, ".pdf")
     check_input_pdf(args.input)
-    set_document_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
+    set_document_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite, args.password)
 
 
 def set_document_language(
-    input_path: str, output_path: str, license_name: str, license_key: str, maxwords: int, overwrite: bool
+    input_path: str,
+    output_path: str,
+    license_name: str,
+    license_key: str,
+    maxwords: int,
+    overwrite: bool,
+    password: str = "",
 ) -> None:
     """
     Set language to document metadata on a PDF document.
@@ -225,8 +236,11 @@ def set_document_language(
         license_key (string): Pdfix sdk license key.
         maxwords (int): How many words are considered for language detection.
         overwrite (bool): Whether to overwrite already existing document language.
+        password (str): Password of the PDF document, empty when it has none.
     """
-    set_document_language = SetDocumentLanguage(license_name, license_key, input_path, output_path, maxwords, overwrite)
+    set_document_language = SetDocumentLanguage(
+        license_name, license_key, input_path, output_path, maxwords, overwrite, password
+    )
     set_document_language.set_document_language()
 
 
@@ -246,9 +260,10 @@ def set_document_language(
 # PDF file.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
 # @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
-# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
-# @KA:solution The PDF is password-protected. Remove the password and run the action again.
 #
+# @KA:problem "PDF document is password-protected. Remove the password with another action first." (error 31)
+# @KA:solution The PDF needs a password to open. Remove the password with another action or in a PDF editor and run the
+# action again. From the command line, pass the password with `--password`.
 # @KA:param output_pdf
 # @KA:desc Where the PDF with the language is saved, a file with the `.pdf` extension. The folder must already exist; an
 # existing file with the same name is overwritten. Both are checked before the document is processed.
@@ -327,6 +342,7 @@ def run_set_tag_language_subcommand(args) -> None:
             args.overwrite,
             regex_pattern,
             args.default_language,
+            args.password,
         )
     elif isinstance(tag_names, dict):
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
@@ -342,6 +358,7 @@ def run_set_tag_language_subcommand(args) -> None:
                 args.overwrite,
                 template_path,
                 args.default_language,
+                args.password,
             )
     else:
         raise InvalidRegexOrTemplateException()
@@ -356,6 +373,7 @@ def set_tag_language(
     overwrite: bool,
     regex_template: str | Path,
     default_language: str,
+    password: str = "",
 ) -> None:
     """
     Set language to chosen tags in a PDF document.
@@ -369,9 +387,18 @@ def set_tag_language(
         overwrite (bool): Whether to overwrite already existing language.
         regex_template (str | Path): Either regex or path to the template JSON file.
         default_language (str): Language applied when detection is not reliable, can be empty.
+        password (str): Password of the PDF document, empty when it has none.
     """
     set_tag_language = SetTagLanguage(
-        license_name, license_key, input_path, regex_template, output_path, maxwords, overwrite, default_language
+        license_name,
+        license_key,
+        input_path,
+        regex_template,
+        output_path,
+        maxwords,
+        overwrite,
+        default_language,
+        password,
     )
     set_tag_language.set_tag_language()
 
@@ -392,9 +419,10 @@ def set_tag_language(
 # PDF file.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
 # @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
-# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
-# @KA:solution The PDF is password-protected. Remove the password and run the action again.
 #
+# @KA:problem "PDF document is password-protected. Remove the password with another action first." (error 31)
+# @KA:solution The PDF needs a password to open. Remove the password with another action or in a PDF editor and run the
+# action again. From the command line, pass the password with `--password`.
 # @KA:param output_pdf
 # @KA:desc Where the PDF with the language is saved, a file with the `.pdf` extension. The folder must already exist; an
 # existing file with the same name is overwritten. Both are checked before the document is processed.
@@ -468,6 +496,7 @@ def run_set_content_language_subcommand(args) -> None:
             args.overwrite,
             regex_pattern,
             args.default_language,
+            args.password,
         )
     elif isinstance(object_types, dict):
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".json") as template_file:
@@ -483,6 +512,7 @@ def run_set_content_language_subcommand(args) -> None:
                 args.overwrite,
                 template_path,
                 args.default_language,
+                args.password,
             )
     else:
         raise InvalidRegexOrTemplateException()
@@ -497,6 +527,7 @@ def set_content_language(
     overwrite: bool,
     regex_template: str | Path,
     default_language: str,
+    password: str = "",
 ) -> None:
     """
     Set language to chosen content in a PDF document.
@@ -510,9 +541,18 @@ def set_content_language(
         overwrite (bool): Whether to overwrite already existing language.
         regex_template (str | Path): Either regex or path to the template JSON file.
         default_language (str): Language applied when detection is not reliable, can be empty.
+        password (str): Password of the PDF document, empty when it has none.
     """
     set_content_language = SetContentLanguage(
-        license_name, license_key, input_path, regex_template, output_path, maxwords, overwrite, default_language
+        license_name,
+        license_key,
+        input_path,
+        regex_template,
+        output_path,
+        maxwords,
+        overwrite,
+        default_language,
+        password,
     )
     set_content_language.set_content_language()
 
@@ -603,7 +643,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_document_language_subparser,
-        ["name", "key", "input", "output", "maxwords", "overwrite"],
+        ["name", "key", "input", "output", "password", "maxwords", "overwrite"],
         True,
         "The PDF document.",
     )
@@ -616,7 +656,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_tag_language_subparser,
-        ["name", "key", "input", "output", "maxwords", "overwrite", "default_language", "params"],
+        ["name", "key", "input", "output", "password", "maxwords", "overwrite", "default_language", "params"],
         True,
         "The PDF document.",
     )
@@ -628,7 +668,7 @@ def main() -> None:  # noqa: D103
     )
     set_arguments(
         set_content_language_subparser,
-        ["name", "key", "input", "output", "maxwords", "overwrite", "default_language", "params"],
+        ["name", "key", "input", "output", "password", "maxwords", "overwrite", "default_language", "params"],
         True,
         "The PDF document.",
     )

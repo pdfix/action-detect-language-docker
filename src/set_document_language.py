@@ -6,12 +6,14 @@ from typing import Optional
 
 from pdfixsdk import GetPdfix, PdfDoc, Pdfix, kSaveFull
 
+from constants import SDK_ERROR_INVALID_PASSWORD
 from exceptions import (
     FailToDetectLangException,
     PdfixFailedToOpenException,
     PdfixFailedToSaveException,
     PdfixFailedToSaveLanguageException,
     PdfixInitializeException,
+    PdfPasswordException,
 )
 from logger import get_logger
 from set_language import SetLanguage
@@ -23,7 +25,14 @@ logger: logging.Logger = get_logger("app_logger")
 
 class SetDocumentLanguage(SetLanguage):
     def __init__(
-        self, license_name: str, license_key: str, input_path: str, output_path: str, maxwords: int, overwrite: bool
+        self,
+        license_name: str,
+        license_key: str,
+        input_path: str,
+        output_path: str,
+        maxwords: int,
+        overwrite: bool,
+        password: str = "",
     ) -> None:
         """
         Initialize class for setting document metadata on a PDF document.
@@ -35,6 +44,7 @@ class SetDocumentLanguage(SetLanguage):
             output_path (string): Path to save the PDF document.
             maxwords (int): How many words are considered for language detection.
             overwrite (bool): Whether to overwrite already existing document language.
+            password (str): Password of the PDF document, empty when it has none.
         """
         self.license_name: str = license_name
         self.license_key: str = license_key
@@ -42,6 +52,7 @@ class SetDocumentLanguage(SetLanguage):
         self.output_path: str = output_path
         self.maxwords: int = maxwords
         self.overwrite: bool = overwrite
+        self.password: str = password
 
     def set_document_language(self) -> None:
         """
@@ -53,8 +64,10 @@ class SetDocumentLanguage(SetLanguage):
 
         authorize_sdk(pdfix, self.license_name, self.license_key)
 
-        doc: Optional[PdfDoc] = pdfix.OpenDoc(self.input_path, "")
+        doc: Optional[PdfDoc] = pdfix.OpenDoc(self.input_path, self.password)
         if doc is None:
+            if pdfix.GetErrorType() == SDK_ERROR_INVALID_PASSWORD:
+                raise PdfPasswordException(pdfix, self.input_path)
             raise PdfixFailedToOpenException(pdfix, self.input_path)
 
         try:

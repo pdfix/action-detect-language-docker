@@ -19,6 +19,7 @@ EC_PDFIX_FAILED_TO_LOAD_TEMPLATE: int = 27
 EC_PDF_NOT_TAGGED: int = 28
 
 EC_FAILED_TO_DETECT_LANG: int = 30
+EC_PDF_PASSWORD: int = 31
 
 MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage and try again."
 MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please check the usage and try again."
@@ -40,6 +41,7 @@ MESSAGE_PDFIX_FAILED_TO_LOAD_TEMPLATE: str = "Failed to load template file."
 MESSAGE_PDF_NOT_TAGGED: str = "PDF document has no tags."
 
 MESSAGE_FAILED_TO_DETECT_LANG: str = "No language was detected in the text."
+MESSAGE_PDF_PASSWORD: str = "PDF document is password-protected. Remove the password with another action first."
 
 
 class ExpectedException(BaseException):
@@ -158,3 +160,8 @@ class FailToDetectLangException(DetectLanguageException):
 class PdfNotTaggedException(DetectLanguageException):
     def __init__(self) -> None:
         super().__init__(EC_PDF_NOT_TAGGED, MESSAGE_PDF_NOT_TAGGED)
+
+
+class PdfPasswordException(PdfixException):
+    def __init__(self, pdfix: Pdfix, pdf_path: str = "") -> None:
+        super().__init__(pdfix, EC_PDF_PASSWORD, f"{MESSAGE_PDF_PASSWORD} {pdf_path}")
