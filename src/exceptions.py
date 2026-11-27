@@ -6,6 +6,7 @@ EC_ARG_PARAMS: int = 12
 EC_ARG_OUTPUT_FOLDER_NOT_EXISTS: int = 13
 EC_ARG_INPUT_NOT_TXT: int = 14
 EC_ARG_OUTPUT_EXTENSION: int = 15
+EC_ARG_INPUT_NOT_PDF: int = 16
 
 EC_PDFIX_INITIALIZE: int = 20
 EC_PDFIX_ACTIVATION_FAILED: int = 21
@@ -15,9 +16,9 @@ EC_PDFIX_FAILED_TO_OPEN: int = 24
 EC_PDFIX_FAILED_TO_SAVE: int = 25
 EC_PDFIX_FAILED_TO_SAVE_LANG: int = 26
 EC_PDFIX_FAILED_TO_LOAD_TEMPLATE: int = 27
+EC_PDF_NOT_TAGGED: int = 28
 
 EC_FAILED_TO_DETECT_LANG: int = 30
-EC_PDF_NOT_TAGGED: int = 31
 
 MESSAGE_ARG_GENERAL: str = "Failed to parse arguments. Please check the usage and try again."
 MESSAGE_ARG_INVALID_REGEX_OR_TEMPLATE: str = "Invalid regex or template. Please check the usage and try again."
@@ -26,6 +27,7 @@ MESSAGE_ARG_OUTPUT_FOLDER_NOT_EXISTS: str = "Output folder does not exist."
 MESSAGE_ARG_INPUT_NOT_TXT: str = "Input file must be an existing TXT file."
 MESSAGE_ARG_OUTPUT_NOT_PDF: str = "Output file must be PDF document."
 MESSAGE_ARG_OUTPUT_NOT_TXT: str = "Output file must be TXT file."
+MESSAGE_ARG_INPUT_NOT_PDF: str = "Input file must be an existing PDF document."
 
 MESSAGE_PDFIX_INITIALIZE: str = "Failed to initialize PDFix SDK."
 MESSAGE_PDFIX_ACTIVATION_FAILED: str = "Failed to activate PDFix SDK account."
@@ -35,9 +37,9 @@ MESSAGE_PDFIX_FAILED_TO_OPEN: str = "Failed to open PDF document."
 MESSAGE_PDFIX_FAILED_TO_SAVE: str = "Failed to save PDF document."
 MESSAGE_PDFIX_FAILED_TO_SAVE_LANG: str = "Failed to set language to PDF document."
 MESSAGE_PDFIX_FAILED_TO_LOAD_TEMPLATE: str = "Failed to load template file."
+MESSAGE_PDF_NOT_TAGGED: str = "PDF document has no tags."
 
 MESSAGE_FAILED_TO_DETECT_LANG: str = "No language was detected in the text."
-MESSAGE_PDF_NOT_TAGGED: str = "PDF document is not tagged."
 
 
 class ExpectedException(BaseException):
@@ -75,6 +77,11 @@ class ArgumentOutputFolderNotExistsException(ArgumentException):
 class ArgumentInputNotTxtException(ArgumentException):
     def __init__(self, path: str) -> None:
         super().__init__(f"{MESSAGE_ARG_INPUT_NOT_TXT} {path}", EC_ARG_INPUT_NOT_TXT)
+
+
+class ArgumentInputNotPdfException(ArgumentException):
+    def __init__(self, path: str) -> None:
+        super().__init__(f"{MESSAGE_ARG_INPUT_NOT_PDF} {path}", EC_ARG_INPUT_NOT_PDF)
 
 
 class ArgumentOutputExtensionException(ArgumentException):

@@ -15,6 +15,7 @@ from exceptions import (
     EC_ARG_GENERAL,
     MESSAGE_ARG_GENERAL,
     ArgumentException,
+    ArgumentInputNotPdfException,
     ArgumentInputNotTxtException,
     ArgumentOutputExtensionException,
     ArgumentOutputFolderNotExistsException,
@@ -114,6 +115,18 @@ def check_output_file(output_path: str, extension: str) -> None:
         raise ArgumentOutputFolderNotExistsException(output_folder.as_posix())
 
 
+def check_input_pdf(input_path: str) -> None:
+    """
+    Check that the input is an existing PDF file.
+
+    Args:
+        input_path (str): Path to the input PDF file.
+    """
+    path: Path = Path(input_path)
+    if path.suffix.lower() != ".pdf" or not path.is_file():
+        raise ArgumentInputNotPdfException(input_path)
+
+
 def run_config_subcommand(args) -> None:
     get_pdfix_config(args.output)
 
@@ -146,8 +159,9 @@ def get_pdfix_config(path: Optional[str]) -> None:
 # (LangDetect)** afterwards.
 # @KA:param input_pdf
 # @KA:desc PDF document to process. It is only read, never changed.
-# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 5" (error 24)
-# @KA:solution The input file does not exist. Select the file again.
+# @KA:problem "Input file must be an existing PDF document." (error 16)
+# @KA:solution The file shown in the message was not found or does not have the `.pdf` extension. Select an existing
+# PDF file.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
 # @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
@@ -194,6 +208,7 @@ def get_pdfix_config(path: Optional[str]) -> None:
 # @KA:solution The license name or key is not valid. Check the license in PDFix Desktop settings.
 def run_set_document_language_subcommand(args) -> None:
     check_output_file(args.output, ".pdf")
+    check_input_pdf(args.input)
     set_document_language(args.input, args.output, args.name, args.key, args.maxwords, args.overwrite)
 
 
@@ -226,8 +241,9 @@ def set_document_language(
 # sent anywhere.
 # @KA:param input_pdf
 # @KA:desc PDF document to process. It is only read, never changed.
-# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 5" (error 24)
-# @KA:solution The input file does not exist. Select the file again.
+# @KA:problem "Input file must be an existing PDF document." (error 16)
+# @KA:solution The file shown in the message was not found or does not have the `.pdf` extension. Select an existing
+# PDF file.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
 # @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
@@ -275,7 +291,7 @@ def set_document_language(
 # tag's replacement text (ActualText) if it has one, otherwise all text inside the tag including its child tags, of
 # which the first **Max Words** words are used. Container tags such as Document or Sect are also changed when they are
 # selected, for example with `.*`. Tags without any text are skipped and listed as warnings in the log.
-# @KA:problem "PDF document is not tagged." (error 31)
+# @KA:problem "PDF document has no tags." (error 28)
 # @KA:solution The language is written to tags, so the PDF must have tags. Tag the PDF first, for example with **AutoTag
 # (PDFix)**, then run the action again. To store the language without tags use **Set Content Language (LangDetect)**.
 #
@@ -296,6 +312,7 @@ def set_document_language(
 # @KA:solution The license name or key is not valid. Check the license in PDFix Desktop settings.
 def run_set_tag_language_subcommand(args) -> None:
     check_output_file(args.output, ".pdf")
+    check_input_pdf(args.input)
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     tag_names: Any = params_parser.get("tag_names")
@@ -370,8 +387,9 @@ def set_tag_language(
 # anywhere.
 # @KA:param input_pdf
 # @KA:desc PDF document to process. It is only read, never changed.
-# @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 5" (error 24)
-# @KA:solution The input file does not exist. Select the file again.
+# @KA:problem "Input file must be an existing PDF document." (error 16)
+# @KA:solution The file shown in the message was not found or does not have the `.pdf` extension. Select an existing
+# PDF file.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 30" (error 24)
 # @KA:solution The file is not a valid PDF. Open and save it again in a PDF editor and run the action again.
 # @KA:problem "Failed to open PDF document." and the next log line shows "PDFix SDK error 34" (error 24)
@@ -435,6 +453,7 @@ def set_tag_language(
 # @KA:solution The license name or key is not valid. Check the license in PDFix Desktop settings.
 def run_set_content_language_subcommand(args) -> None:
     check_output_file(args.output, ".pdf")
+    check_input_pdf(args.input)
     params_parser = ParamsParser(args.params)
     params_parser.parse()
     object_types: Any = params_parser.get("object_types")
