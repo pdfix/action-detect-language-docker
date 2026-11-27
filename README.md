@@ -10,6 +10,8 @@ A Docker image that detects the language of PDF documents or text using LangDete
   - [Commands](#commands)
   - [Arguments](#arguments)
   - [Params JSON](#params-json)
+  - [How it works](#how-it-works)
+  - [Exit codes](#exit-codes)
   - [Examples](#examples)
   - [Help \& support](#help--support)
   - [Licenses](#licenses)
@@ -140,6 +142,38 @@ Example (`examples/params_content.json`) — match only text objects:
 ```
 
 Use `"value": ".*"` to match all page objects.
+
+## How it works
+
+- LangDetect detects the language (55 languages, main code only, for example `en`) from the first `--maxwords` words; a result needs at least 3 words and 90 % certainty.
+- `set-document-language` sets the document language from the language found on most pages; `set-tag-language` sets the language of the selected tags; `set-content-language` sets it in the page content; `detect-language` writes the code of a TXT file into a TXT file.
+- Text too short for a reliable result gets `--default-language`; existing languages are kept unless `--overwrite`.
+- **Checks before processing:** output extension (15) and folder (13), input (16 PDF, 14 TXT), params (11, 12), then the PDFix license and opening the PDF (password 31).
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| 0 | Success |
+| 1 | Unexpected error (`Failed to run the program:` + traceback) |
+| 10 | Failed to parse arguments. Please check the usage and try again |
+| 11 | Invalid regex or template. Please check the usage and try again |
+| 12 | Missing or invalid parameters |
+| 13 | Output folder does not exist |
+| 14 | Input file must be an existing TXT file |
+| 15 | Output file must be PDF document / Output file must be TXT file |
+| 16 | Input file must be an existing PDF document |
+| 20 | Failed to initialize PDFix SDK |
+| 21 | Failed to activate PDFix SDK account |
+| 22 | Failed to authorize PDFix SDK account |
+| 23 | Failed to read PDF document |
+| 24 | Failed to open PDF document |
+| 25 | Failed to save PDF document |
+| 26 | Failed to set language to PDF document |
+| 27 | Failed to load template file |
+| 28 | PDF document has no tags |
+| 30 | No language was detected in the text |
+| 31 | PDF document is password-protected. Remove the password with another action first |
 
 ## Examples
 
